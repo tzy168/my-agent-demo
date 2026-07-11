@@ -1,1 +1,0 @@
-export { successResponse } from "./response";
