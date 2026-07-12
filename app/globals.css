@@ -22,5 +22,131 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+/* ── Layout ── */
+
+@utility app-shell {
+  @apply w-screen h-screen overflow-hidden flex flex-col flex-1 bg-zinc-50 font-sans dark:bg-black;
+}
+
+@utility page-stack {
+  @apply w-full h-full flex flex-col flex-1 min-h-0;
+}
+
+@utility page-content {
+  @apply w-full flex flex-col flex-1 min-h-0 overflow-hidden  pt-[64px];
+}
+
+@utility page-fill {
+  @apply w-full h-full min-h-0 flex-1;
+}
+
+@utility page-center {
+  @apply w-full h-full min-h-0 flex-1 flex items-center box-border;
+}
+
+/* ── Nav ── */
+
+@utility nav-glass {
+  @apply fixed top-0 left-0 z-10 flex items-center w-full shrink-0 border-b border-black/8 bg-white/65 backdrop-blur-md backdrop-saturate-150 dark:border-white/[.145] dark:bg-black/55;
+}
+
+@utility nav-brand {
+  @apply text-2xl font-bold pl-4;
+}
+
+@utility nav-tabs {
+  @apply flex w-full items-center gap-2 px-4 py-3;
+}
+
+@utility nav-tab {
+  @apply rounded-full px-4 py-1.5 text-sm font-medium transition-colors;
+}
+
+@utility nav-tab-active {
+  @apply bg-foreground text-background;
+}
+
+@utility nav-tab-idle {
+  @apply text-zinc-600 hover:bg-black/4 dark:text-zinc-400 dark:hover:bg-[#1a1a1a];
+}
+
+/* ── Brand ── */
+
+@utility brand-hero {
+  @apply text-8xl font-bold p-2;
+}
+
+/* ── Chat ── */
+
+@utility chat-panel {
+  @apply w-full h-full flex-1 flex flex-col items-center gap-4 min-h-0 overflow-hidden;
+}
+
+@utility chat-column {
+  @apply w-[720px] max-w-full;
+}
+
+@utility chat-list {
+  @apply chat-column min-h-0 overflow-y-auto scrollbar-none flex flex-col gap-3 px-1;
+}
+
+@utility chat-empty {
+  @apply m-auto text-sm text-zinc-400;
+}
+
+@utility chat-form {
+  @apply relative chat-column shrink-0;
+}
+
+@utility chat-input {
+  @apply w-full h-12 rounded-2xl border border-black/25 bg-white py-2 pl-3 pr-24 outline-none transition-[border-color,box-shadow,background-color] duration-300 ease-out hover:border-black/55 hover:bg-zinc-50 focus:border-black focus:bg-white focus:shadow-[0_0_0_3px_rgba(0,0,0,0.12)] disabled:opacity-60;
+}
+
+@utility chat-send {
+  @apply cursor-pointer absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-xl bg-black px-4 font-bold text-white transition-[background-color,transform,box-shadow] duration-300 ease-out hover:bg-zinc-700 hover:shadow-md hover:scale-[1.03] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-black disabled:hover:shadow-none;
+}
+
+@utility chat-typing {
+  @apply rounded-2xl rounded-bl-md bg-zinc-100 px-3.5 py-2.5 text-sm text-zinc-500;
+}
+
+/* ── Message bubbles ── */
+
+@utility msg-row {
+  @apply flex w-full;
+}
+
+@utility msg-row-end {
+  @apply msg-row justify-end;
+}
+
+@utility msg-row-start {
+  @apply msg-row justify-start;
+}
+
+@utility msg-bubble {
+  @apply max-w-[75%] px-3.5 py-2.5 text-sm leading-relaxed wrap-break-word;
+  @apply [&_p]:my-1 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0;
+  @apply [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5;
+  @apply [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5;
+  @apply [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:rounded-lg [&_pre]:p-2.5 [&_pre]:text-[0.8rem];
+  @apply [&_code]:rounded [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.85em];
+  @apply [&_pre_code]:bg-transparent [&_pre_code]:p-0;
+  @apply [&_a]:underline [&_a]:underline-offset-2;
+  @apply [&_blockquote]:my-1 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:opacity-80;
+}
+
+@utility msg-bubble-human {
+  @apply msg-bubble rounded-2xl rounded-br-md bg-black text-white;
+  @apply [&_a]:text-zinc-200 [&_code]:bg-white/15 [&_pre]:bg-white/10;
+  @apply [&_blockquote]:border-white/40;
+}
+
+@utility msg-bubble-ai {
+  @apply msg-bubble rounded-2xl rounded-bl-md bg-zinc-100 text-zinc-800;
+  @apply [&_a]:text-zinc-700 [&_code]:bg-black/8 [&_pre]:bg-black/5;
+  @apply [&_blockquote]:border-zinc-400;
 }

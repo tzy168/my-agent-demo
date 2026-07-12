@@ -18,6 +18,15 @@ class ApiClient {
 
     return json.data;
   }
+
+  async post<T>(url: string, data: any): Promise<T> {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    return this.get<T>(url);
+  }
 }
 
 export const apiClient = new ApiClient();
