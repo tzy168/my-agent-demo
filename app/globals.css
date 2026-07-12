@@ -76,13 +76,13 @@ body {
 /* ── Brand ── */
 
 @utility brand-hero {
-  @apply text-8xl font-bold p-2;
+  @apply text-8xl font-bold p-2 select-none;
 }
 
 /* ── Chat ── */
 
 @utility chat-panel {
-  @apply w-full h-full flex-1 flex flex-col items-center gap-4 min-h-0 overflow-hidden;
+  @apply w-full h-full flex-1 flex flex-col items-center gap-4 min-h-0 overflow-hidden py-1;
 }
 
 @utility chat-column {
@@ -107,6 +107,10 @@ body {
 
 @utility chat-send {
   @apply cursor-pointer absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-xl bg-black px-4 font-bold text-white transition-[background-color,transform,box-shadow] duration-300 ease-out hover:bg-zinc-700 hover:shadow-md hover:scale-[1.03] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 disabled:hover:bg-black disabled:hover:shadow-none;
+}
+
+@utility chat-stop {
+  @apply cursor-pointer absolute right-1.5 top-1/2 h-9 -translate-y-1/2 rounded-xl bg-red-600 px-4 font-bold text-white transition-[background-color,transform,box-shadow] duration-300 ease-out hover:bg-red-700 hover:shadow-md hover:scale-[1.03] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600;
 }
 
 @utility chat-typing {

@@ -1,6 +1,8 @@
 import { ChatOllama } from "@langchain/ollama";
 import { modelConfig } from "@/config";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
+import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { StringOutputParser } from "@langchain/core/output_parsers";
 
 const model = new ChatOllama({
   model: modelConfig.ollama.chatModel,
@@ -31,7 +33,11 @@ function toTextContent(content: unknown): string {
   return "";
 }
 
-export const baseChat = async (msg: string, systemMessage: string) => {
+export const baseChat = async (
+  msg: string,
+  systemMessage: string,
+  signal?: AbortSignal,
+) => {
   try {
     // const result = await model.invoke([
     //   new SystemMessage(systemMessage),
@@ -49,10 +55,53 @@ export const baseChat = async (msg: string, systemMessage: string) => {
     // ReadableStream：流式响应，用于前端消费
     return new ReadableStream({
       async start(controller) {
+        const onAbort = () => controller.close();
+        signal?.addEventListener("abort", onAbort);
+
         try {
           for await (const chunk of stream) {
+            if (signal?.aborted) break;
             const text = toTextContent(chunk.content);
             if (text) controller.enqueue(encoder.encode(text));
+          }
+          controller.close();
+        } catch (error) {
+          if (!signal?.aborted) controller.error(error);
+        } finally {
+          signal?.removeEventListener("abort", onAbort);
+        }
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    // 勿直接 return error：前端 String(Error) 会变成 [object Object]
+    throw error instanceof Error ? error : new Error(String(error));
+  }
+};
+
+/**
+ * 
+ * @param msg 用户的问题
+ * @returns 流式响应
+ */
+export const streamWithPipe = async (
+  msg: string,
+) => {
+  try {
+    const chain = ChatPromptTemplate.fromMessages([
+      new SystemMessage(
+        '你是一个资深的程序员技术大佬，擅长将零碎、复杂的知识，体系化、简单化，并给出快速入门的建议。',
+      ),
+      new HumanMessage(msg),
+    ]).pipe(model).pipe(new StringOutputParser());
+
+    const stream = await chain.stream({ msg });
+    const encoder = new TextEncoder();
+    return new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of stream) {
+            controller.enqueue(encoder.encode(chunk));
           }
           controller.close();
         } catch (error) {
@@ -62,7 +111,6 @@ export const baseChat = async (msg: string, systemMessage: string) => {
     });
   } catch (error) {
     console.error(error);
-    // 勿直接 return error：前端 String(Error) 会变成 [object Object]
     throw error instanceof Error ? error : new Error(String(error));
   }
 };

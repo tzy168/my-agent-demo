@@ -1,2 +1,2 @@
 export { successResponse, errorResponse } from "./response";
-export { baseChat } from "./chat";
+export { baseChat, streamWithPipe } from "./chat";

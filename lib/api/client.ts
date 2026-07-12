@@ -25,7 +25,16 @@ class ApiClient {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    return this.get<T>(url);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    const json = (await res.json()) as ApiResponse<T>;
+    if (json.code !== 0) {
+      throw new Error(json.message);
+    }
+
+    return json.data;
   }
 }
 
