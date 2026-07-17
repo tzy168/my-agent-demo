@@ -1,5 +1,5 @@
 /** 前端页面路由 key，与 Tab 一一对应 */
-export type AppRouteKey = "home" | "chat" | "rag";
+export type AppRouteKey = "home" | "chat" | "rag" | "docs";
 
 export type NavTab = {
   key: AppRouteKey;
@@ -12,6 +12,7 @@ export const APP_ROUTES = {
   HOME: "/",
   CHAT: "/chat",
   RAG: "/rag",
+  DOCS: "/docs",
 } as const;
 
 /** 顶栏 Tab 配置：href 为 Next.js 页面路由 */
@@ -19,6 +20,7 @@ export const NAV_TABS: NavTab[] = [
   { key: "home", label: "HOME", href: APP_ROUTES.HOME },
   { key: "chat", label: "CHAT", href: APP_ROUTES.CHAT },
   { key: "rag", label: "RAG", href: APP_ROUTES.RAG },
+  { key: "docs", label: "DOCS", href: APP_ROUTES.DOCS },
 ];
 
 /** 根据当前 pathname 判断 Tab 是否激活 */

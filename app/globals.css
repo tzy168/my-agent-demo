@@ -47,6 +47,48 @@ body {
   @apply w-full h-full min-h-0 flex-1 flex items-center box-border;
 }
 
+/* ── Docs ── */
+
+@utility docs-scroll {
+  @apply w-full h-full min-h-0 overflow-y-auto px-6 py-8;
+}
+
+@utility docs-container {
+  @apply mx-auto w-full max-w-3xl;
+}
+
+@utility docs-title {
+  @apply mb-6 text-3xl font-bold tracking-tight;
+}
+
+@utility docs-section {
+  @apply mb-8;
+}
+
+@utility docs-heading {
+  @apply mb-3 text-xl font-semibold;
+}
+
+@utility docs-text {
+  @apply mb-4 text-sm leading-7 text-zinc-700 dark:text-zinc-300;
+}
+
+@utility docs-list {
+  @apply mb-4 list-decimal space-y-2 pl-5 text-sm leading-7 text-zinc-700 dark:text-zinc-300;
+}
+
+@utility docs-ul {
+  @apply mb-4 list-disc space-y-1 pl-5 text-sm leading-7 text-zinc-700 dark:text-zinc-300;
+}
+
+@utility docs-code {
+  @apply rounded bg-black/5 px-1.5 py-0.5 text-[0.85em] font-mono dark:bg-white/10;
+}
+
+@utility docs-pre {
+  @apply my-4 overflow-x-auto rounded-lg bg-black/5 p-4 text-[0.8rem] dark:bg-white/10;
+}
+
 /* ── Nav ── */
 
 @utility nav-glass {
