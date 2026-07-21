@@ -131,59 +131,62 @@ const Chat = () => {
   };
 
   return (
-    // 列布局：消息区可滚、输入框始终贴底；整页不滚动
+    // 列布局：列表与发送框同处 chat-column，宽度一致
     <div className="chat-panel">
-      <div ref={listRef} className="chat-list" style={{
-        height: 'calc(100vh - 200px)',
-      }}>
-        {messages.length === 0 && !loading && (
-          <p className="chat-empty">发送一条消息开始对话</p>
-        )}
-        {messages.map((msg) => (
-          <MsgBlock key={msg.id} role={msg.role} content={msg.content} />
-        ))}
-        {loading && (
-          <div className="msg-row-start">
-            <div className="chat-typing">思考中…</div>
-          </div>
-        )}
-      </div>
+      <div className="chat-column">
+        <div ref={listRef} className="chat-list">
+          {messages.length === 0 && !loading && (
+            <p className="chat-empty">发送一条消息开始对话</p>
+          )}
+          {messages.map((msg) => (
+            <MsgBlock key={msg.id} role={msg.role} content={msg.content} />
+          ))}
+          {loading && (
+            <div className="msg-row-start">
+              <div className="chat-typing">
+                <span className="chat-typing-dot" aria-hidden />
+                思考中…
+              </div>
+            </div>
+          )}
+        </div>
 
-      <form
-        className="chat-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void handleSubmit();
-        }}
-      >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          name="message"
-          type="text"
-          disabled={loading}
-          className="chat-input"
-          autoComplete="off"
-          placeholder="请输入消息"
-        />
-        {loading ? (
-          <button
-            type="button"
-            onClick={handleAbort}
-            className="chat-stop"
-          >
-            停止
-          </button>
-        ) : (
-          <button
-            type="submit"
-            disabled={!input.trim()}
-            className="chat-send"
-          >
-            发送
-          </button>
-        )}
-      </form>
+        <form
+          className="chat-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleSubmit();
+          }}
+        >
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            name="message"
+            type="text"
+            disabled={loading}
+            className="chat-input"
+            autoComplete="off"
+            placeholder="请输入消息"
+          />
+          {loading ? (
+            <button
+              type="button"
+              onClick={handleAbort}
+              className="chat-stop"
+            >
+              停止
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!input.trim()}
+              className="chat-send"
+            >
+              发送
+            </button>
+          )}
+        </form>
+      </div>
     </div>
   );
 };

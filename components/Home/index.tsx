@@ -2,12 +2,14 @@ import Grainient from "../Grainient";
 
 const Home = () => {
   return (
-    <div className="page-center relative overflow-hidden flex flex-col items-start justify-end">
+    // page-bleed：绝对铺满 page-content（含左右 padding 区域），避免右侧露底
+    <div className="page-bleed flex flex-col items-start justify-end">
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        {/* 暖纸 / 墨棕 / 赭红，对齐 Editorial Minimal 色板 */}
         <Grainient
-          color1="#ffffff"
-          color2="#000000"
-          color3="#94a3b8"
+          color1="#F6F3EC"
+          color2="#1C1814"
+          color3="#B0431B"
           timeSpeed={0.25}
           colorBalance={0}
           warpStrength={1}
@@ -29,9 +31,10 @@ const Home = () => {
           zoom={0.9}
         />
       </div>
-      <div className="relative z-10 flex flex-col h-full justify-end pb-32">
+      {/* 文案仍按页面内边距对齐，不随背景一起顶边 */}
+      <div className="relative flex flex-col h-full justify-end pb-32 px-6 md:px-14 box-border">
         <div className="brand-hero">TH.AGENT</div>
-        <div className="brand-hero">My Agent Demo.</div>
+        <div className="brand-hero-accent">My Agent Demo.</div>
       </div>
     </div>
   );

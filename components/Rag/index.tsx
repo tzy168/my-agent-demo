@@ -363,7 +363,10 @@ const Rag = () => {
             ))}
             {loading && (
               <div className="msg-row-start">
-                <div className="chat-typing">检索并思考中…</div>
+                <div className="chat-typing">
+                  <span className="chat-typing-dot" aria-hidden />
+                  检索并思考中…
+                </div>
               </div>
             )}
           </div>
