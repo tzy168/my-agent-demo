@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-An AI agent demo built with Next.js 16 (App Router), React 19, TypeScript, and Tailwind CSS v4. Uses LangChain + Ollama for local LLM chat with streaming responses, and OGL (WebGL) for animated gradient backgrounds.
+An AI agent demo built with Next.js 16 (App Router), React 19, TypeScript, and Tailwind CSS v4. Uses LangChain + Ollama for local LLM chat with streaming responses, and OGL (WebGL) for animated gradient backgrounds. This demo will help me learing AI Agent.
 
 ## Essential Commands
 
@@ -29,7 +29,7 @@ Routes use the `(main)` route group with a shared layout (`app/(main)/layout.tsx
 |------|------|---------|
 | `/` | `app/(main)/page.tsx` | Home — OGL gradient hero |
 | `/chat` | `app/(main)/chat/page.tsx` | Streaming AI chat |
-| `/rag` | `app/(main)/rag/page.tsx` | Placeholder for RAG features |
+| `/rag` | `app/(main)/rag/page.tsx` | RAG demo：上传、相似度检索、RAG Chat（见 `docs/RAG.md`） |
 | `/docs` | `app/(main)/docs/page.tsx` | Static docs on building RAG with this stack |
 
 ### API Routes
@@ -38,6 +38,10 @@ Two POST endpoints, both return plain-text streaming responses (not JSON):
 
 - **`/api/baseChat`** — Basic chat with configurable system message. Accepts `{ msg, systemMessage }`. Uses `ChatOllama.stream()` via LangChain.
 - **`/api/pipe`** — Chained chat with a hardcoded "senior programmer" system prompt. Accepts `{ msg }`. Uses `ChatPromptTemplate.pipe(model).pipe(StringOutputParser())` chain.
+- **`/api/rag/upload`** — Multipart upload (`.txt`/`.md`), chunk + embed into in-memory store. Optional `clear=1`.
+- **`/api/rag/search`** — `{ query, k? }` → hits with cosine similarity scores.
+- **`/api/rag/chat`** — RAG streaming chat; header `X-Rag-Hits` carries retrieval scores.
+- **`/api/rag/status`** — Current chunk count and sources.
 
 Errors return JSON with shape `{ code, message, data }` via `errorResponse()`.
 
@@ -52,10 +56,12 @@ components/           # React components, barrel-exported from index.ts
   Grainient/          # WebGL animated gradient (OGL) — heavy, keep client-only
   Home/               # Hero page wrapping Grainient
   NavTabs.tsx         # Top navigation bar with route-aware active state
-  Rag/                # RAG page placeholder
+  Rag/                # RAG：上传、检索相似度、RAG Chat
 lib/
   api/                # Client-side fetch wrapper (ApiClient class)
-  server/             # Server-only: chat logic (baseChat, streamWithPipe), response helpers
+  server/             # Server-only: chat + rag (ingest/search/streamRagChat), response helpers
+docs/
+  RAG.md              # RAG 从 0 到 1 步骤说明
 constants/
   api.routes.ts       # API route path constants
   app.routes.ts       # Page route constants, NavTab config, active-tab logic
