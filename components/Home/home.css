@@ -1,0 +1,21 @@
+/* Home 品牌首屏 */
+
+@utility brand-hero {
+  /* difference + 白字：相对底层背景实时取负色 */
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 50;
+  @apply select-none p-2 font-bold leading-none text-white mix-blend-difference;
+  font-size: clamp(3rem, 12vw, 7rem);
+}
+
+@utility brand-hero-accent {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 100;
+  @apply select-none p-2 font-semibold leading-none text-accent;
+  font-size: clamp(1.75rem, 5vw, 3.5rem);
+}

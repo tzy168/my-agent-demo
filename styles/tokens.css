@@ -1,0 +1,59 @@
+/* 全站色系 / 字体 token —— 各模块样式共用，勿在模块内另起色板 */
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f6f3ec;
+  --surface: #fefcf6;
+  --surface-2: #efe9da;
+  --accent: #b0431b;
+  --accent-soft: rgba(176, 67, 27, 0.08);
+  --ink: #1c1814;
+  --ink-soft: #3d3630;
+  --secondary: #6b635a;
+  --muted: #9a9186;
+  --border: rgba(28, 24, 20, 0.12);
+  --border-strong: rgba(28, 24, 20, 0.28);
+  --shadow: rgba(80, 50, 20, 0.1);
+  --code-bg: #efe9da;
+  --on-accent: #fefcf6;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #14110c;
+  --surface: #1d1913;
+  --surface-2: #252017;
+  --accent: #e07a48;
+  --accent-soft: rgba(224, 122, 72, 0.1);
+  --ink: #f3eee4;
+  --ink-soft: #d4ccc0;
+  --secondary: #a89f92;
+  --muted: #7a7268;
+  --border: rgba(243, 238, 228, 0.12);
+  --border-strong: rgba(243, 238, 228, 0.28);
+  --shadow: rgba(0, 0, 0, 0.45);
+  --code-bg: #252017;
+  --on-accent: #14110c;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-on-accent: var(--on-accent);
+  --color-background: var(--bg);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+  --ease-editorial: cubic-bezier(0.2, 0.8, 0.2, 1);
+}

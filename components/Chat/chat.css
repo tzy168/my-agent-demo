@@ -1,0 +1,158 @@
+/* Chat 对话 + 消息气泡 */
+
+@utility chat-panel {
+  /* 消息区 flex-1 可滚，发送栏 shrink-0 贴底 */
+  @apply w-full max-w-full h-full flex-1 flex flex-col items-center min-h-0 overflow-x-hidden overflow-y-hidden pt-2 pb-4;
+}
+
+@utility chat-column {
+  /* 列表与发送框共用同一列宽 */
+  @apply flex w-full max-w-[720px] flex-1 min-h-0 flex-col gap-3;
+}
+
+@utility chat-list {
+  @apply w-full flex-1 min-h-0 overflow-x-hidden overflow-y-auto scrollbar-none flex flex-col gap-3;
+}
+
+@utility chat-empty {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-variation-settings: "SOFT" 100;
+  @apply m-auto text-sm text-muted;
+}
+
+@utility chat-form {
+  @apply relative w-full shrink-0;
+}
+
+@utility chat-input {
+  @apply w-full h-12 rounded-2xl border bg-surface py-2 pl-3 pr-24 text-ink outline-none;
+  border-color: var(--border);
+  transition:
+    border-color 0.35s var(--ease-editorial),
+    box-shadow 0.35s var(--ease-editorial),
+    background-color 0.35s var(--ease-editorial);
+}
+
+.chat-input:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+
+.chat-input:focus {
+  border-color: var(--accent);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.chat-input:disabled {
+  opacity: 0.6;
+}
+
+.chat-input::placeholder {
+  color: var(--muted);
+}
+
+@utility chat-send {
+  @apply absolute right-1.5 top-1/2 h-9 -translate-y-1/2 cursor-pointer rounded-xl bg-accent px-4 font-bold text-on-accent;
+  transition:
+    background-color 0.35s var(--ease-editorial),
+    filter 0.35s var(--ease-editorial);
+}
+
+.chat-send:hover {
+  filter: brightness(1.08);
+}
+
+.chat-send:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.chat-send:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.chat-send:disabled:hover {
+  filter: none;
+}
+
+@utility chat-stop {
+  @apply absolute right-1.5 top-1/2 h-9 -translate-y-1/2 cursor-pointer rounded-xl border px-4 font-bold text-accent;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  transition:
+    background-color 0.35s var(--ease-editorial),
+    color 0.35s var(--ease-editorial),
+    filter 0.35s var(--ease-editorial);
+}
+
+.chat-stop:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.chat-stop:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@utility chat-typing {
+  @apply flex items-center gap-2 rounded-2xl rounded-bl-md bg-surface-2 px-3.5 py-2.5 text-sm text-secondary;
+}
+
+@utility chat-typing-dot {
+  @apply inline-block h-1.5 w-1.5 rounded-full bg-accent;
+  animation: pulse-live 1.8s var(--ease-editorial) infinite;
+}
+
+@keyframes pulse-live {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+}
+
+/* Message bubbles */
+
+@utility msg-row {
+  @apply flex w-full;
+}
+
+@utility msg-row-end {
+  @apply msg-row justify-end;
+}
+
+@utility msg-row-start {
+  @apply msg-row justify-start;
+}
+
+@utility msg-bubble {
+  @apply max-w-[75%] px-3.5 py-2.5 text-sm leading-relaxed wrap-break-word;
+  @apply [&_p]:my-1 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0;
+  @apply [&_ul]:my-1 [&_ul]:list-disc [&_ul]:pl-5;
+  @apply [&_ol]:my-1 [&_ol]:list-decimal [&_ol]:pl-5;
+  @apply [&_pre]:my-2 [&_pre]:overflow-x-auto [&_pre]:scrollbar-none [&_pre]:rounded-md [&_pre]:p-2.5 [&_pre]:text-[0.8rem] [&_pre]:font-mono;
+  @apply [&_code]:rounded-[3px] [&_code]:px-1 [&_code]:py-0.5 [&_code]:text-[0.85em] [&_code]:font-mono;
+  @apply [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit;
+  @apply [&_a]:underline [&_a]:underline-offset-2;
+  @apply [&_blockquote]:my-1 [&_blockquote]:border-l-2 [&_blockquote]:pl-3 [&_blockquote]:italic;
+}
+
+@utility msg-bubble-human {
+  @apply msg-bubble rounded-2xl rounded-br-md bg-accent text-on-accent;
+  @apply [&_a]:text-on-accent [&_code]:bg-white/15 [&_pre]:bg-white/10;
+  @apply [&_blockquote]:border-on-accent/40 [&_blockquote]:text-on-accent/90;
+}
+
+@utility msg-bubble-ai {
+  @apply msg-bubble rounded-2xl rounded-bl-md bg-surface-2 text-ink-soft;
+  @apply [&_a]:text-accent [&_code]:bg-accent-soft [&_code]:text-accent;
+  @apply [&_pre]:bg-[var(--code-bg)] [&_blockquote]:border-accent [&_blockquote]:text-secondary;
+}

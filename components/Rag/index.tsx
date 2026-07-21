@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { API_ROUTES } from "@/constants/api.routes";
 import MsgBlock, { type MsgRole } from "@/components/Chat/MsgBlock";
+// 样式见 ./rag.css（由 app/globals.css 统一 import，保证 Tailwind @utility 生效）
 
 type RagHit = {
   content: string;
@@ -235,7 +236,7 @@ const Rag = () => {
   return (
     <div className="rag-page">
       <div className="rag-grid">
-        {/* 左栏：上传 + 检索 */}
+        {/* 左栏：上传 + 检索（仅 rag-hits 滚动） */}
         <section className="rag-side">
           <header className="rag-section-head">
             <h2 className="rag-title">知识库</h2>

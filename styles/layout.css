@@ -1,0 +1,29 @@
+/* 壳层 / 页面布局 */
+
+@utility app-shell {
+  /* 用 w-full 而非 w-screen，避免 100vw 含滚动条宽度导致横向溢出 */
+  @apply w-full max-w-full h-dvh overflow-x-hidden overflow-y-hidden flex flex-col flex-1 bg-bg font-sans text-ink;
+}
+
+@utility page-stack {
+  @apply w-full max-w-full h-full flex flex-col flex-1 min-h-0 overflow-x-hidden;
+}
+
+@utility page-content {
+  /* z-0 建立层叠上下文；子项靠 flex 占满剩余高度 */
+  @apply relative z-0 flex w-full max-w-full flex-1 min-h-0 flex-col overflow-hidden pt-[64px] px-6 md:px-14 box-border;
+}
+
+@utility page-fill {
+  /* 占满 page-content 剩余空间，并把高度约束传给子模块 */
+  @apply flex min-h-0 w-full max-w-full flex-1 flex-col overflow-hidden;
+}
+
+@utility page-center {
+  @apply w-full max-w-full h-full min-h-0 flex-1 flex items-center box-border overflow-x-hidden;
+}
+
+/* 铺满 page-content 的 padding box，用于 Home 全幅背景 */
+@utility page-bleed {
+  @apply absolute inset-0 w-auto h-auto overflow-hidden;
+}

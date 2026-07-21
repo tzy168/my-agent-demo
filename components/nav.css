@@ -1,0 +1,50 @@
+/* 顶栏导航 */
+
+@utility nav-glass {
+  /* z-50：始终压在 page-bleed 等全幅层之上，保证 Tab 可点 */
+  @apply fixed top-0 left-0 z-50 flex items-center w-full shrink-0 border-b backdrop-blur-sm backdrop-saturate-50;
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+}
+
+@utility nav-brand {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 72,
+    "SOFT" 50;
+  @apply text-2xl font-bold pl-4 text-ink;
+}
+
+@utility nav-tabs {
+  @apply flex w-full items-center gap-2 px-4 py-3;
+}
+
+@utility nav-tab {
+  @apply relative rounded-full px-4 py-1.5 text-sm font-medium;
+  transition:
+    color 0.35s var(--ease-editorial),
+    background-color 0.35s var(--ease-editorial);
+}
+
+@utility nav-tab-active {
+  @apply text-accent;
+  background: var(--accent-soft);
+}
+
+@utility nav-tab-idle {
+  @apply text-secondary hover:bg-accent-soft hover:text-ink-soft;
+}
+
+@utility nav-theme {
+  @apply mr-4 ml-auto flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border text-ink-soft;
+  border-color: var(--border);
+  background: var(--surface);
+  transition:
+    transform 0.35s var(--ease-editorial),
+    border-color 0.35s var(--ease-editorial),
+    color 0.35s var(--ease-editorial);
+}
+
+@utility nav-theme-hover {
+  @apply hover:border-accent hover:text-accent hover:rotate-[15deg];
+}

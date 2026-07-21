@@ -1,0 +1,50 @@
+/* Docs 文档页 */
+
+@utility docs-scroll {
+  @apply w-full h-full min-h-0 overflow-x-hidden overflow-y-auto scrollbar-none py-8;
+}
+
+@utility docs-container {
+  @apply mx-auto w-full max-w-3xl;
+}
+
+@utility docs-title {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 144,
+    "SOFT" 50;
+  @apply mb-6 text-3xl font-semibold tracking-tight text-ink;
+}
+
+@utility docs-section {
+  @apply mb-8;
+}
+
+@utility docs-heading {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 72,
+    "SOFT" 50;
+  @apply mb-3 text-xl font-semibold text-ink;
+}
+
+@utility docs-text {
+  @apply mb-4 text-sm leading-7 text-ink-soft;
+}
+
+@utility docs-list {
+  @apply mb-4 list-decimal space-y-2 pl-5 text-sm leading-7 text-ink-soft;
+}
+
+@utility docs-ul {
+  @apply mb-4 list-disc space-y-1 pl-5 text-sm leading-7 text-ink-soft;
+}
+
+@utility docs-code {
+  @apply rounded-[3px] bg-accent-soft px-1.5 py-0.5 text-[0.85em] font-mono text-accent;
+}
+
+@utility docs-pre {
+  @apply my-4 overflow-x-auto scrollbar-none rounded-md p-4 text-[0.8rem] font-mono text-ink-soft;
+  background: var(--code-bg);
+}

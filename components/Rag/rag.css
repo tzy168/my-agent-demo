@@ -1,0 +1,173 @@
+/* RAG 双栏：整页不滚，仅命中列表 + 对话列表可滚 */
+
+@utility rag-page {
+  @apply flex h-full min-h-0 w-full max-w-full flex-1 flex-col overflow-hidden box-border py-3;
+}
+
+@utility rag-grid {
+  @apply grid min-h-0 flex-1 gap-4 overflow-hidden;
+  grid-template-columns: minmax(280px, 380px) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+}
+
+@media (max-width: 920px) {
+  .rag-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+    overflow: hidden;
+  }
+}
+
+@utility rag-side {
+  /* 侧栏本身不滚：表单固定，仅下方命中列表可滚 */
+  @apply flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-2xl border bg-surface p-4;
+  border-color: var(--border);
+  box-shadow: 0 1px 0 var(--shadow);
+}
+
+@utility rag-chat {
+  /* 对话栏本身不滚：标题与输入固定，仅消息列表可滚 */
+  @apply flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-2xl border bg-surface p-4;
+  border-color: var(--border);
+}
+
+@utility rag-section-head {
+  @apply shrink-0;
+}
+
+@utility rag-title {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 72,
+    "SOFT" 50;
+  @apply m-0 text-lg font-semibold tracking-tight text-ink;
+}
+
+@utility rag-meta {
+  font-family: var(--font-mono);
+  @apply m-0 mt-1 text-[10px] uppercase tracking-[0.14em] text-muted;
+}
+
+@utility rag-form {
+  @apply flex flex-col gap-2 shrink-0;
+}
+
+@utility rag-label {
+  @apply text-sm font-medium text-ink-soft;
+}
+
+@utility rag-file {
+  @apply w-full text-sm text-secondary file:mr-3 file:rounded-lg file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-ink hover:file:bg-accent-soft;
+}
+
+@utility rag-check {
+  @apply flex items-center gap-2 text-xs text-secondary;
+  accent-color: var(--accent);
+}
+
+@utility rag-row {
+  @apply flex gap-2;
+}
+
+@utility rag-input {
+  @apply min-w-0 flex-1 h-10 rounded-xl border bg-surface px-3 text-sm text-ink outline-none;
+  border-color: var(--border);
+  transition: border-color 0.35s var(--ease-editorial);
+}
+
+.rag-input:focus {
+  border-color: var(--accent);
+}
+
+@utility rag-btn {
+  @apply shrink-0 h-10 rounded-xl bg-accent px-4 text-sm font-semibold text-on-accent disabled:opacity-50;
+  transition: filter 0.35s var(--ease-editorial);
+}
+
+.rag-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+@utility rag-hint {
+  @apply m-0 text-xs text-secondary;
+}
+
+@utility rag-hint-error {
+  @apply text-accent;
+}
+
+@utility rag-empty {
+  font-family: var(--font-display);
+  font-style: italic;
+  @apply m-0 text-xs text-muted;
+}
+
+@utility rag-hits {
+  /* basis-0：强制在剩余高度内滚动，而不是把侧栏撑高 */
+  @apply flex min-h-0 flex-1 basis-0 flex-col gap-2 overflow-x-hidden overflow-y-auto scrollbar-none;
+}
+
+@utility rag-hit {
+  @apply shrink-0 rounded-xl border bg-surface-2 p-2.5;
+  border-color: var(--border);
+}
+
+@utility rag-hit-head {
+  @apply mb-1.5 flex flex-wrap items-center gap-2 text-xs;
+}
+
+@utility rag-hit-rank {
+  font-family: var(--font-mono);
+  @apply text-[10px] uppercase tracking-[0.12em] text-muted;
+}
+
+@utility rag-hit-score {
+  @apply font-semibold text-ink;
+}
+
+@utility rag-hit-source {
+  @apply text-secondary;
+}
+
+@utility rag-hit-bar {
+  @apply mb-2 h-1.5 w-full overflow-hidden rounded-full bg-border;
+}
+
+.rag-hit-bar::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: var(--score, 0%);
+  border-radius: 9999px;
+  background: var(--accent);
+}
+
+@utility rag-hit-body {
+  @apply m-0 max-h-28 overflow-x-hidden overflow-y-auto scrollbar-none whitespace-pre-wrap break-words font-sans text-xs leading-5 text-ink-soft;
+}
+
+@utility rag-chat-list {
+  @apply flex min-h-0 flex-1 basis-0 flex-col gap-3 overflow-x-hidden overflow-y-auto scrollbar-none;
+}
+
+@utility rag-chat-form {
+  @apply relative w-full max-w-none shrink-0;
+}
+
+@utility rag-msg-wrap {
+  @apply flex w-full shrink-0 flex-col gap-1;
+}
+
+@utility rag-cite {
+  @apply ml-1 max-w-[90%] rounded-lg border bg-surface-2 px-2.5 py-1.5 text-xs text-secondary;
+  border-color: var(--border);
+}
+
+@utility rag-cite-list {
+  @apply mt-2 mb-0 list-none space-y-2 pl-0;
+}
+
+@utility rag-cite-snippet {
+  @apply mt-1 mb-0 max-h-20 overflow-x-hidden overflow-y-auto scrollbar-none whitespace-pre-wrap break-words font-sans text-[0.7rem] leading-4 text-muted;
+}
