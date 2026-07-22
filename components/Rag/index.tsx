@@ -401,7 +401,7 @@ const Rag = () => {
               <button
                 type="submit"
                 disabled={!input.trim()}
-                className="chat-send"
+                className="btn-primary chat-send"
               >
                 发送
               </button>

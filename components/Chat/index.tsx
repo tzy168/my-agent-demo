@@ -14,6 +14,9 @@ const Chat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [systemPrompt, setSystemPrompt] = useState("");
+  // 输入框前缀标签文案，与 systemPrompt 同步
+  const [roleTag, setRoleTag] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
   // 当前请求的 AbortController，用于停止生成
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -58,10 +61,10 @@ const Chat = () => {
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch(API_ROUTES.PIPE, {
+      const response = await fetch(API_ROUTES.BASE_CHAT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ msg: text }),
+        body: JSON.stringify({ msg: text, systemMsg: systemPrompt }),
         signal: controller.signal,
       });
 
@@ -150,7 +153,28 @@ const Chat = () => {
             </div>
           )}
         </div>
-
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => {
+              setRoleTag("前端");
+              setSystemPrompt("你是一个前端工程师，请用前端视角回答问题");
+            }}
+          >
+            前端
+          </button>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => {
+              setRoleTag("全栈");
+              setSystemPrompt("你是一个全栈工程师，请用全栈视角回答问题");
+            }}
+          >
+            全栈
+          </button>
+        </div>
         <form
           className="chat-form"
           onSubmit={(e) => {
@@ -158,6 +182,22 @@ const Chat = () => {
             void handleSubmit();
           }}
         >
+          {roleTag ? (
+            <span className="chat-input-tag" title={systemPrompt}>
+              {roleTag}
+              <button
+                type="button"
+                className="chat-input-tag-clear"
+                aria-label={`清除${roleTag}标签`}
+                onClick={() => {
+                  setRoleTag("");
+                  setSystemPrompt("");
+                }}
+              >
+                ×
+              </button>
+            </span>
+          ) : null}
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -180,7 +220,7 @@ const Chat = () => {
             <button
               type="submit"
               disabled={!input.trim()}
-              className="chat-send"
+              className="btn-primary chat-send"
             >
               发送
             </button>

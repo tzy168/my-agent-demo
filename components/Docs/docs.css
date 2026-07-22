@@ -1,62 +1,60 @@
-/* Docs 文档页 */
+/* Docs：左侧目录 + markdown-it 正文 */
 
-@utility docs-scroll {
-  @apply w-full h-full min-h-0 overflow-x-hidden overflow-y-auto scrollbar-none py-8;
+@utility docs-layout {
+  @apply flex h-full min-h-0 w-full flex-col gap-6 px-4 py-6 md:flex-row md:gap-10 md:px-8;
 }
 
-@utility docs-tabs {
-  @apply mx-auto mb-8 flex w-full max-w-3xl gap-1 border-b border-ink/10;
+@utility docs-nav {
+  @apply flex shrink-0 flex-row gap-1 overflow-x-auto scrollbar-none md:w-40 md:flex-col md:self-start;
 }
 
-@utility docs-tab {
-  @apply px-4 py-2 text-sm text-ink-soft transition-colors;
+@utility docs-nav-link {
+  @apply whitespace-nowrap rounded-md px-3 py-2 text-sm text-ink-soft transition-colors;
 }
 
-@utility docs-tab-active {
-  @apply border-b-2 border-accent font-medium text-ink;
+@utility docs-nav-link-active {
+  @apply bg-accent-soft font-medium text-accent;
 }
 
-@utility docs-container {
-  @apply mx-auto w-full max-w-3xl;
-}
+/* markdown-it 输出的标签样式（无独立 TSX 文档组件） */
+@utility docs-article {
+  @apply min-w-0 flex-1 overflow-x-hidden overflow-y-auto scrollbar-none pb-10 text-sm leading-7 text-ink-soft;
+  @apply [&_h1]:mb-6 [&_h1]:text-3xl [&_h1]:font-semibold [&_h1]:tracking-tight [&_h1]:text-ink;
+  @apply [&_h2]:mb-3 [&_h2]:mt-8 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-ink;
+  @apply [&_h3]:mb-2 [&_h3]:mt-6 [&_h3]:text-base [&_h3]:font-semibold [&_h3]:text-ink;
+  @apply [&_p]:mb-4;
+  @apply [&_ul]:mb-4 [&_ul]:list-disc [&_ul]:space-y-1 [&_ul]:pl-5;
+  @apply [&_ol]:mb-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5;
+  @apply [&_li]:leading-7;
+  @apply [&_hr]:my-8 [&_hr]:border-ink/10;
+  @apply [&_blockquote]:my-4 [&_blockquote]:border-l-2 [&_blockquote]:border-accent [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-secondary;
+  @apply [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2;
+  @apply [&_strong]:font-semibold [&_strong]:text-ink;
+  @apply [&_code]:rounded-[3px] [&_code]:bg-accent-soft [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-accent;
+  @apply [&_pre]:my-4 [&_pre]:overflow-x-auto [&_pre]:scrollbar-none [&_pre]:rounded-md [&_pre]:p-4 [&_pre]:font-mono [&_pre]:text-[0.8rem] [&_pre]:text-ink-soft;
+  @apply [&_pre_code]:bg-transparent [&_pre_code]:p-0 [&_pre_code]:text-inherit;
+  @apply [&_table]:mb-4 [&_table]:w-full [&_table]:border-collapse [&_table]:text-left;
+  @apply [&_th]:border-b [&_th]:border-ink/15 [&_th]:px-2 [&_th]:py-1.5 [&_th]:font-medium [&_th]:text-ink;
+  @apply [&_td]:border-b [&_td]:border-ink/10 [&_td]:px-2 [&_td]:py-1.5;
 
-@utility docs-title {
-  font-family: var(--font-display);
-  font-variation-settings:
-    "opsz" 144,
-    "SOFT" 50;
-  @apply mb-6 text-3xl font-semibold tracking-tight text-ink;
-}
+  font-family: var(--font-sans);
 
-@utility docs-section {
-  @apply mb-8;
-}
+  & h1,
+  & h2,
+  & h3 {
+    font-family: var(--font-display);
+    font-variation-settings:
+      "opsz" 72,
+      "SOFT" 50;
+  }
 
-@utility docs-heading {
-  font-family: var(--font-display);
-  font-variation-settings:
-    "opsz" 72,
-    "SOFT" 50;
-  @apply mb-3 text-xl font-semibold text-ink;
-}
+  & h1 {
+    font-variation-settings:
+      "opsz" 144,
+      "SOFT" 50;
+  }
 
-@utility docs-text {
-  @apply mb-4 text-sm leading-7 text-ink-soft;
-}
-
-@utility docs-list {
-  @apply mb-4 list-decimal space-y-2 pl-5 text-sm leading-7 text-ink-soft;
-}
-
-@utility docs-ul {
-  @apply mb-4 list-disc space-y-1 pl-5 text-sm leading-7 text-ink-soft;
-}
-
-@utility docs-code {
-  @apply rounded-[3px] bg-accent-soft px-1.5 py-0.5 text-[0.85em] font-mono text-accent;
-}
-
-@utility docs-pre {
-  @apply my-4 overflow-x-auto scrollbar-none rounded-md p-4 text-[0.8rem] font-mono text-ink-soft;
-  background: var(--code-bg);
+  & pre {
+    background: var(--code-bg);
+  }
 }

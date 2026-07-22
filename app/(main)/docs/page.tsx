@@ -1,5 +1,10 @@
 import Docs from "@/components/Docs";
 
-export default function DocsPage() {
-  return <Docs />;
+type DocsPageProps = {
+  searchParams: Promise<{ doc?: string }>;
+};
+
+export default async function DocsPage({ searchParams }: DocsPageProps) {
+  const { doc } = await searchParams;
+  return <Docs doc={doc} />;
 }

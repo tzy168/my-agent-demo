@@ -35,7 +35,7 @@ function toTextContent(content: unknown): string {
 
 export const baseChat = async (
   msg: string,
-  systemMessage: string,
+  systemMsg: string,
   signal?: AbortSignal,
 ) => {
   try {
@@ -47,7 +47,7 @@ export const baseChat = async (
 
     // 最简单流式：把模型 chunk 文本直接推进 ReadableStream
     const stream = await model.stream([
-      new SystemMessage(systemMessage),
+      new SystemMessage(systemMsg),
       new HumanMessage(msg),
     ]);
     const encoder = new TextEncoder();
@@ -86,6 +86,7 @@ export const baseChat = async (
  */
 export const streamWithPipe = async (
   msg: string,
+  systemMsg: string,
 ) => {
   try {
     const chain = ChatPromptTemplate.fromMessages([

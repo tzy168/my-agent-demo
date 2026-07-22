@@ -1,37 +1,57 @@
-"use client";
+import fs from "node:fs";
+import path from "node:path";
+import Link from "next/link";
+import MarkdownIt from "markdown-it";
 
-import { useState } from "react";
-import RagDoc from "./RagDoc";
-import DatabaseDoc from "./DatabaseDoc";
+type DocId = "rag" | "database";
 
-type DocsTab = "rag" | "database";
-
-const TABS: { key: DocsTab; label: string }[] = [
-  { key: "rag", label: "RAG" },
-  { key: "database", label: "数据库" },
+const DOCS: { id: DocId; label: string; file: string }[] = [
+  { id: "rag", label: "RAG", file: "RAG.md" },
+  { id: "database", label: "数据库", file: "DATABASE.md" },
 ];
 
-const Docs = () => {
-  const [tab, setTab] = useState<DocsTab>("rag");
+// 与 MsgBlock 一致：关闭原生 HTML，降低 XSS 面
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  breaks: true,
+});
+
+function renderDoc(file: string) {
+  const raw = fs.readFileSync(path.join(process.cwd(), "docs", file), "utf8");
+  return md.render(raw);
+}
+
+type DocsProps = {
+  doc?: string;
+};
+
+/** /docs：左侧目录 + 直接渲染 docs/*.md */
+const Docs = ({ doc }: DocsProps) => {
+  const active = DOCS.find((d) => d.id === doc) ?? DOCS[0];
+  const html = renderDoc(active.file);
 
   return (
-    <div className="docs-scroll">
-      <div className="docs-tabs" role="tablist" aria-label="文档分类">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.key}
-            className={tab === t.key ? "docs-tab docs-tab-active" : "docs-tab"}
-            onClick={() => setTab(t.key)}
+    <div className="docs-layout">
+      <nav className="docs-nav" aria-label="文档目录">
+        {DOCS.map((d) => (
+          <Link
+            key={d.id}
+            href={d.id === "rag" ? "/docs" : `/docs?doc=${d.id}`}
+            className={
+              d.id === active.id
+                ? "docs-nav-link docs-nav-link-active"
+                : "docs-nav-link"
+            }
           >
-            {t.label}
-          </button>
+            {d.label}
+          </Link>
         ))}
-      </div>
-
-      {tab === "rag" ? <RagDoc /> : <DatabaseDoc />}
+      </nav>
+      <article
+        className="docs-article"
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
     </div>
   );
 };

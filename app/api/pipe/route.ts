@@ -5,13 +5,14 @@ import { errorResponse, streamWithPipe } from "@/lib/server";
  * @param request 请求体
  * @body {
  *  msg: string
+ *  systemMsg: string
  * }
  * @returns 纯文本流式响应
  */
 export async function POST(request: Request) {
   try {
-    const { msg } = await request.json();
-    const stream = await streamWithPipe(msg);
+    const { msg, systemMsg } = await request.json();
+    const stream = await streamWithPipe(msg, systemMsg);
     return new Response(stream, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
