@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { API_ROUTES } from "@/constants/api.routes";
+import { chatModelPayload } from "@/lib/settings";
 import MsgBlock, { type MsgRole } from "@/components/Chat/MsgBlock";
 // 样式见 ./rag.css（由 app/globals.css 统一 import，保证 Tailwind @utility 生效）
 
@@ -151,7 +152,7 @@ const Rag = () => {
       const response = await fetch(API_ROUTES.RAG_CHAT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ msg: text }),
+        body: JSON.stringify({ msg: text, ...chatModelPayload() }),
         signal: controller.signal,
       });
 

@@ -1,6 +1,7 @@
-import { ChatOllama, OllamaEmbeddings } from "@langchain/ollama";
+import { OllamaEmbeddings } from "@langchain/ollama";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { modelConfig } from "@/config";
+import { createChatModel, type ChatModelOptions } from "./model";
 
 /** 内存中的一条文本块 + 向量（demo 用，进程重启即清空） */
 type StoredChunk = {
@@ -11,16 +12,10 @@ type StoredChunk = {
 
 const store: StoredChunk[] = [];
 
+// 嵌入仍走本地 Ollama；对话生成可按设置切换 DeepSeek
 const embeddings = new OllamaEmbeddings({
   model: modelConfig.ollama.embedModel,
   baseUrl: modelConfig.ollama.host,
-});
-
-const chatModel = new ChatOllama({
-  model: modelConfig.ollama.chatModel,
-  baseUrl: modelConfig.ollama.host,
-  temperature: Number(modelConfig.ollama.temperature),
-  think: false,
 });
 
 /** 余弦相似度：1 最相似，-1 最不相似 */
@@ -142,7 +137,11 @@ export async function searchRag(query: string, k = 4): Promise<RagHit[]> {
  * RAG 对话：先检索再生成，返回纯文本流
  * 同时把检索命中塞进响应头 X-Rag-Hits（JSON），方便前端展示相似度
  */
-export async function streamRagChat(msg: string, signal?: AbortSignal) {
+export async function streamRagChat(
+  msg: string,
+  signal?: AbortSignal,
+  modelOptions?: ChatModelOptions,
+) {
   const hits = await searchRag(msg, 4);
   const context = hits
     .map(
@@ -156,6 +155,7 @@ export async function streamRagChat(msg: string, signal?: AbortSignal) {
 检索上下文：
 ${context}`;
 
+  const chatModel = createChatModel(modelOptions);
   const stream = await chatModel.stream([
     new SystemMessage(systemMessage),
     new HumanMessage(msg),

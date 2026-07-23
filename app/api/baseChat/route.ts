@@ -1,4 +1,4 @@
-import { baseChat, errorResponse } from "@/lib/server";
+import { baseChat, errorResponse, parseModelOptions } from "@/lib/server";
 
 /**
  *
@@ -6,13 +6,21 @@ import { baseChat, errorResponse } from "@/lib/server";
  * @body {
  *  msg: string
  *  systemMsg: string
+ *  provider?: "ollama" | "deepseek"
+ *  apiKey?: string
  * }
  * @returns 纯文本流式响应
  */
 export async function POST(request: Request) {
   try {
-    const { msg, systemMsg } = await request.json();
-    const stream = await baseChat(msg, systemMsg, request.signal);
+    const body = await request.json();
+    const { msg, systemMsg } = body;
+    const stream = await baseChat(
+      msg,
+      systemMsg,
+      request.signal,
+      parseModelOptions(body),
+    );
     return new Response(stream, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",

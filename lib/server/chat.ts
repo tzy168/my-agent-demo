@@ -1,15 +1,7 @@
-import { ChatOllama } from "@langchain/ollama";
-import { modelConfig } from "@/config";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-
-const model = new ChatOllama({
-  model: modelConfig.ollama.chatModel,
-  baseUrl: modelConfig.ollama.host,
-  temperature: Number(modelConfig.ollama.temperature),
-  think: false,
-});
+import { createChatModel, type ChatModelOptions } from "./model";
 
 /** LangChain content 可能是 string 或 ContentBlock[]，统一抽成纯文本 */
 function toTextContent(content: unknown): string {
@@ -37,14 +29,10 @@ export const baseChat = async (
   msg: string,
   systemMsg: string,
   signal?: AbortSignal,
+  modelOptions?: ChatModelOptions,
 ) => {
   try {
-    // const result = await model.invoke([
-    //   new SystemMessage(systemMessage),
-    //   new HumanMessage(msg),
-    // ]);
-    // return toTextContent(result.content);
-
+    const model = createChatModel(modelOptions);
     // 最简单流式：把模型 chunk 文本直接推进 ReadableStream
     const stream = await model.stream([
       new SystemMessage(systemMsg),
@@ -80,21 +68,25 @@ export const baseChat = async (
 };
 
 /**
- * 
+ *
  * @param msg 用户的问题
  * @returns 流式响应
  */
 export const streamWithPipe = async (
   msg: string,
   systemMsg: string,
+  modelOptions?: ChatModelOptions,
 ) => {
   try {
+    const model = createChatModel(modelOptions);
     const chain = ChatPromptTemplate.fromMessages([
       new SystemMessage(
-        '你是一个资深的程序员技术大佬，擅长将零碎、复杂的知识，体系化、简单化，并给出快速入门的建议。',
+        "你是一个资深的程序员技术大佬，擅长将零碎、复杂的知识，体系化、简单化，并给出快速入门的建议。",
       ),
       new HumanMessage(msg),
-    ]).pipe(model).pipe(new StringOutputParser());
+    ])
+      .pipe(model)
+      .pipe(new StringOutputParser());
 
     const stream = await chain.stream({ msg });
     const encoder = new TextEncoder();

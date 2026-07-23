@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { API_ROUTES } from "@/constants/api.routes";
+import { chatModelPayload } from "@/lib/settings";
 import MsgBlock, { type MsgRole } from "./MsgBlock";
 
 type ChatMessage = {
@@ -64,7 +65,11 @@ const Chat = () => {
       const response = await fetch(API_ROUTES.BASE_CHAT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ msg: text, systemMsg: systemPrompt }),
+        body: JSON.stringify({
+          msg: text,
+          systemMsg: systemPrompt,
+          ...chatModelPayload(),
+        }),
         signal: controller.signal,
       });
 

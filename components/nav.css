@@ -35,6 +35,32 @@
   @apply text-secondary hover:bg-accent-soft hover:text-ink-soft;
 }
 
+/* 右侧操作区：设置 + 主题 */
+@utility nav-actions {
+  @apply mr-4 ml-auto flex shrink-0 items-center gap-2;
+}
+
+@utility nav-icon-btn {
+  @apply flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border text-ink-soft;
+  border-color: var(--border);
+  background: var(--surface);
+  transition:
+    transform 0.35s var(--ease-editorial),
+    border-color 0.35s var(--ease-editorial),
+    color 0.35s var(--ease-editorial),
+    background-color 0.35s var(--ease-editorial);
+}
+
+@utility nav-icon-btn-hover {
+  @apply hover:border-accent hover:text-accent hover:rotate-[15deg];
+}
+
+@utility nav-icon-btn-active {
+  @apply border-accent text-accent;
+  background: var(--accent-soft);
+}
+
+/* @deprecated 请使用 nav-icon-btn，计划于后续版本移除 */
 @utility nav-theme {
   @apply mr-4 ml-auto flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border text-ink-soft;
   border-color: var(--border);
@@ -45,6 +71,7 @@
     color 0.35s var(--ease-editorial);
 }
 
+/* @deprecated 请使用 nav-icon-btn-hover */
 @utility nav-theme-hover {
   @apply hover:border-accent hover:text-accent hover:rotate-[15deg];
 }

@@ -1,0 +1,147 @@
+/* Settings 页 */
+
+@utility settings-panel {
+  @apply mx-auto flex w-full max-w-[520px] flex-col gap-6 px-4 py-8;
+}
+
+@utility settings-header {
+  @apply flex flex-col gap-2;
+}
+
+@utility settings-title {
+  font-family: var(--font-display);
+  font-variation-settings:
+    "opsz" 72,
+    "SOFT" 50;
+  @apply text-3xl font-bold text-ink;
+}
+
+@utility settings-desc {
+  @apply text-sm leading-relaxed text-secondary;
+}
+
+@utility settings-form {
+  @apply flex flex-col gap-6;
+}
+
+@utility settings-fieldset {
+  @apply m-0 flex flex-col gap-3 border-0 p-0;
+}
+
+@utility settings-legend {
+  @apply mb-1 px-0 text-sm font-medium text-ink;
+}
+
+@utility settings-radios {
+  @apply flex flex-col gap-2;
+  accent-color: var(--accent);
+}
+
+@utility settings-radio {
+  @apply flex cursor-pointer items-start gap-3 rounded-2xl border px-3 py-3;
+  border-color: var(--border);
+  background: var(--surface);
+  transition:
+    border-color 0.35s var(--ease-editorial),
+    background-color 0.35s var(--ease-editorial);
+}
+
+.settings-radio:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+
+.settings-radio:has(input:checked) {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.settings-radio input {
+  @apply mt-1;
+}
+
+@utility settings-radio-label {
+  @apply block text-sm font-medium text-ink;
+}
+
+@utility settings-radio-hint {
+  @apply mt-0.5 block text-xs text-muted;
+}
+
+@utility settings-field {
+  @apply flex flex-col gap-1.5;
+}
+
+@utility settings-label {
+  @apply text-sm font-medium text-ink;
+}
+
+@utility settings-required {
+  @apply text-accent;
+}
+
+@utility settings-key-row {
+  @apply flex gap-2;
+}
+
+@utility settings-input {
+  @apply h-12 min-h-12 flex-1 rounded-2xl border bg-surface px-3 text-base text-ink outline-none;
+  border-color: var(--border);
+  transition:
+    border-color 0.35s var(--ease-editorial),
+    box-shadow 0.35s var(--ease-editorial),
+    background-color 0.35s var(--ease-editorial);
+}
+
+.settings-input:hover:not(:disabled) {
+  border-color: var(--border-strong);
+  background: var(--surface-2);
+}
+
+.settings-input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.settings-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.settings-input:user-invalid {
+  border-color: var(--accent);
+}
+
+@utility settings-toggle-key {
+  @apply h-12 shrink-0 cursor-pointer rounded-xl border px-3 text-sm text-ink-soft;
+  border-color: var(--border);
+  background: var(--surface);
+}
+
+.settings-toggle-key:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.settings-toggle-key:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@utility settings-hint {
+  @apply text-xs leading-relaxed text-muted;
+}
+
+.settings-hint code {
+  @apply rounded px-1 py-0.5 text-[0.7rem];
+  background: var(--accent-soft);
+  color: var(--ink-soft);
+}
+
+@utility settings-actions {
+  @apply flex items-center gap-3;
+}
+
+@utility settings-saved {
+  @apply text-sm text-accent;
+}

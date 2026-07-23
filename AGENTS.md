@@ -31,16 +31,17 @@ Routes use the `(main)` route group with a shared layout (`app/(main)/layout.tsx
 | `/chat` | `app/(main)/chat/page.tsx` | Streaming AI chat |
 | `/rag` | `app/(main)/rag/page.tsx` | RAG demo：上传、相似度检索、RAG Chat（见 `docs/RAG.md`） |
 | `/docs` | `app/(main)/docs/page.tsx` | Static docs on building RAG with this stack |
+| `/settings` | `app/(main)/settings/page.tsx` | 设置：切换 Ollama / DeepSeek，填写 DeepSeek API Key（localStorage） |
 
 ### API Routes
 
 Two POST endpoints, both return plain-text streaming responses (not JSON):
 
-- **`/api/baseChat`** — Basic chat with configurable system message. Accepts `{ msg, systemMessage }`. Uses `ChatOllama.stream()` via LangChain.
-- **`/api/pipe`** — Chained chat with a hardcoded "senior programmer" system prompt. Accepts `{ msg }`. Uses `ChatPromptTemplate.pipe(model).pipe(StringOutputParser())` chain.
+- **`/api/baseChat`** — Basic chat with configurable system message. Accepts `{ msg, systemMsg, provider?, apiKey? }`. Uses `createChatModel()`（Ollama / DeepSeek）.
+- **`/api/pipe`** — Chained chat with a hardcoded "senior programmer" system prompt. Accepts `{ msg, provider?, apiKey? }`.
 - **`/api/rag/upload`** — Multipart upload (`.txt`/`.md`), chunk + embed into in-memory store. Optional `clear=1`.
 - **`/api/rag/search`** — `{ query, k? }` → hits with cosine similarity scores.
-- **`/api/rag/chat`** — RAG streaming chat; header `X-Rag-Hits` carries retrieval scores.
+- **`/api/rag/chat`** — RAG streaming chat；header `X-Rag-Hits` carries retrieval scores. Accepts `{ msg, provider?, apiKey? }`（生成模型可切换；嵌入仍 Ollama）.
 - **`/api/rag/status`** — Current chunk count and sources.
 
 Errors return JSON with shape `{ code, message, data }` via `errorResponse()`.
@@ -57,9 +58,11 @@ components/           # React components, barrel-exported from index.ts
   Home/               # Hero page wrapping Grainient
   NavTabs.tsx         # Top navigation bar with route-aware active state
   Rag/                # RAG：上传、检索相似度、RAG Chat
+  Settings/           # 设置页：Ollama / DeepSeek + API Key
 lib/
   api/                # Client-side fetch wrapper (ApiClient class)
-  server/             # Server-only: chat + rag (ingest/search/streamRagChat), response helpers
+  server/             # Server-only: chat + rag + model factory, response helpers
+  settings.ts         # 前端设置读写（localStorage）+ chatModelPayload()
 docs/
   RAG.md              # RAG 从 0 到 1 步骤说明
 constants/
@@ -67,7 +70,8 @@ constants/
   app.routes.ts       # Page route constants, NavTab config, active-tab logic
 types/
   api.ts              # ApiResponse<T> interface
-config.ts             # Ollama model config (host, model names, temperature) — driven by env vars
+  settings.ts         # AppSettings / LlmProvider
+config.ts             # Ollama + DeepSeek model config — driven by env vars
 ```
 
 ### Key Patterns
@@ -79,14 +83,25 @@ config.ts             # Ollama model config (host, model names, temperature) —
 - **Streaming responses**: Chat API endpoints return `ReadableStream` with `text/plain` content type. The front-end `Chat` component reads the stream via `response.body.getReader()` and incrementally updates UI. AbortController cancels both the fetch and the reader.
 - **ApiClient**: A fetch wrapper in `lib/api/client.ts` for JSON APIs expecting `ApiResponse<T>` shape (`{ code: 0, message, data }`). Not used by the chat page (which uses raw fetch for streaming). Use this for future JSON endpoints.
 
-### Ollama Configuration
+### Model Configuration
 
-All model config lives in `config.ts` and reads from environment variables:
+All model config lives in `config.ts` and reads from environment variables.
+
+**Ollama（默认 / RAG 嵌入）**
 
 - `OLLAMA_HOST` — Ollama server URL (default: `http://localhost:11434`)
 - `OLLAMA_CHAT_MODEL` — chat model (default: `qwen3.5:4b`)
 - `OLLAMA_EMBED_MODEL` — embedding model for RAG (default: `mxbai-embed-large:latest`)
 - `OLLAMA_TEMPERATURE` — model temperature (default: `0.3`)
+
+**DeepSeek（可选，OpenAI 兼容 API）**
+
+- 设置页可切换 provider，并填写 API Key（存 localStorage，请求时随 body 传给服务端）
+- `DEEPSEEK_API_KEY` — 服务端兜底 Key（未在设置页填写时使用）
+- `DEEPSEEK_BASE_URL` — default `https://api.deepseek.com`
+- `DEEPSEEK_CHAT_MODEL` — default `deepseek-chat`
+- `DEEPSEEK_TEMPERATURE` — default `0.3`
+- 聊天生成走 `createChatModel()`；RAG 向量嵌入仍固定使用 Ollama
 
 ### Important: Next.js 16 Breaking Changes
 
