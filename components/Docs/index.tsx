@@ -3,11 +3,12 @@ import path from "node:path";
 import Link from "next/link";
 import MarkdownIt from "markdown-it";
 
-type DocId = "rag" | "database";
+type DocId = "rag" | "database" | "architecture";
 
 const DOCS: { id: DocId; label: string; file: string }[] = [
   { id: "rag", label: "RAG", file: "RAG.md" },
   { id: "database", label: "数据库", file: "DATABASE.md" },
+  { id: "architecture", label: "架构", file: "ARCHITECTURE.md" }
 ];
 
 // 与 MsgBlock 一致：关闭原生 HTML，降低 XSS 面

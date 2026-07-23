@@ -158,7 +158,10 @@ const Chat = () => {
             </div>
           )}
         </div>
-        <div className="flex gap-2">
+        <div
+          className="flex gap-2"
+          style={{ backdropFilter: "blur(5px)" }}
+        >
           <button
             type="button"
             className="btn-primary"
