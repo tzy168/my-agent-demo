@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { API_ROUTES } from "@/constants/api.routes";
 import { chatModelPayload } from "@/lib/settings";
-import MsgBlock, { type MsgRole } from "@/components/Chat/MsgBlock";
+import MsgBlock from "@/components/Chat/MsgBlock";
+import useStreamingChat, {
+  type StreamingChatMessage,
+} from "@/hooks/useStreamingChat";
 // 样式见 ./rag.css（由 app/globals.css 统一 import，保证 Tailwind @utility 生效）
 
 type RagHit = {
@@ -12,10 +15,7 @@ type RagHit = {
   score: number;
 };
 
-type ChatMessage = {
-  id: string;
-  role: MsgRole;
-  content: string;
+type ChatMessage = StreamingChatMessage & {
   hits?: RagHit[];
 };
 
@@ -35,12 +35,29 @@ const Rag = () => {
   const [hits, setHits] = useState<RagHit[]>([]);
   const [searchError, setSearchError] = useState("");
 
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const listRef = useRef<HTMLDivElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(null);
+  const {
+    messages,
+    input,
+    setInput,
+    loading,
+    listRef,
+    handleAbort,
+    handleSubmit: handleChat,
+  } = useStreamingChat<ChatMessage>({
+    apiRoute: API_ROUTES.RAG_CHAT,
+    buildBody: (text) => ({ msg: text, ...chatModelPayload() }),
+    onResponse: (response, { updateMessage }) => {
+      // 从响应头解析本次检索命中（含相似度）
+      const hitsHeader = response.headers.get("X-Rag-Hits");
+      if (!hitsHeader) return;
+      try {
+        const chatHits = JSON.parse(decodeURIComponent(hitsHeader)) as RagHit[];
+        updateMessage((msg) => ({ ...msg, hits: chatHits }));
+      } catch {
+        // 忽略解析失败
+      }
+    },
+  });
 
   const refreshStatus = async () => {
     try {
@@ -55,12 +72,6 @@ const Rag = () => {
   useEffect(() => {
     void refreshStatus();
   }, []);
-
-  useEffect(() => {
-    const el = listRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }, [messages, loading]);
 
   const handleUpload = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -116,121 +127,6 @@ const Rag = () => {
       setSearchError(err instanceof Error ? err.message : "检索失败");
     } finally {
       setSearching(false);
-    }
-  };
-
-  const handleAbort = () => {
-    if (readerRef.current) {
-      void readerRef.current.cancel().catch(() => {});
-      return;
-    }
-    abortControllerRef.current?.abort();
-  };
-
-  const handleChat = async () => {
-    const text = input.trim();
-    if (!text || loading) return;
-
-    const humanMsg: ChatMessage = {
-      id: `human-${Date.now()}`,
-      role: "human",
-      content: text,
-    };
-    const aiMsgId = `ai-${Date.now()}`;
-    setMessages((prev) => [
-      ...prev,
-      humanMsg,
-      { id: aiMsgId, role: "ai", content: "" },
-    ]);
-    setInput("");
-    setLoading(true);
-
-    const controller = new AbortController();
-    abortControllerRef.current = controller;
-
-    try {
-      const response = await fetch(API_ROUTES.RAG_CHAT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ msg: text, ...chatModelPayload() }),
-        signal: controller.signal,
-      });
-
-      if (!response.ok || !response.body) {
-        const err = await response.json().catch(() => null);
-        throw new Error(
-          typeof err?.message === "string" ? err.message : "请求失败",
-        );
-      }
-
-      // 从响应头解析本次检索命中（含相似度）
-      const hitsHeader = response.headers.get("X-Rag-Hits");
-      let chatHits: RagHit[] | undefined;
-      if (hitsHeader) {
-        try {
-          chatHits = JSON.parse(decodeURIComponent(hitsHeader)) as RagHit[];
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === aiMsgId ? { ...msg, hits: chatHits } : msg,
-            ),
-          );
-        } catch {
-          // 忽略解析失败
-        }
-      }
-
-      const reader = response.body.getReader();
-      readerRef.current = reader;
-      const decoder = new TextDecoder();
-      let aiContent = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        aiContent += decoder.decode(value, { stream: true });
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === aiMsgId ? { ...msg, content: aiContent } : msg,
-          ),
-        );
-      }
-
-      aiContent += decoder.decode();
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === aiMsgId
-            ? { ...msg, content: aiContent || "（无回复）" }
-            : msg,
-        ),
-      );
-    } catch (error) {
-      const isAborted =
-        (error instanceof Error && error.name === "AbortError") ||
-        (error instanceof DOMException && error.name === "AbortError") ||
-        (error instanceof Error && /aborted/i.test(error.message));
-
-      if (isAborted) {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === aiMsgId && !msg.content
-              ? { ...msg, content: "（已停止）" }
-              : msg,
-          ),
-        );
-        return;
-      }
-
-      const errText =
-        error instanceof Error ? error.message : "请求失败，请稍后重试。";
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === aiMsgId ? { ...msg, content: errText } : msg,
-        ),
-      );
-    } finally {
-      abortControllerRef.current = null;
-      readerRef.current = null;
-      setLoading(false);
     }
   };
 

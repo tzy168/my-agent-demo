@@ -34,7 +34,7 @@ const Home = () => {
       {/* 文案仍按页面内边距对齐，不随背景一起顶边 */}
       <div className="relative flex flex-col h-full justify-end pb-32 px-6 md:px-14 box-border">
         <div className="brand-hero">TH.AGENT</div>
-        <div className="brand-hero-accent">My Agent Demo.</div>
+        <div className="brand-hero-accent">My Agent Demo</div>
       </div>
     </div>
   );
