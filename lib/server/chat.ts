@@ -1,7 +1,20 @@
-import { SystemMessage, HumanMessage } from "@langchain/core/messages";
+import {
+  SystemMessage,
+  HumanMessage,
+  ToolMessage,
+  type BaseMessage,
+  type AIMessage,
+} from "@langchain/core/messages";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { createChatModel, type ChatModelOptions } from "./model";
+import { getNowTimeTool } from "./tools";
+
+/** 当前 baseChat 绑定的工具；按 name 查找执行 */
+const baseChatTools = [getNowTimeTool];
+const baseChatToolsByName = Object.fromEntries(
+  baseChatTools.map((t) => [t.name, t]),
+);
 
 /** LangChain content 可能是 string 或 ContentBlock[]，统一抽成纯文本 */
 function toTextContent(content: unknown): string {
@@ -25,6 +38,21 @@ function toTextContent(content: unknown): string {
   return "";
 }
 
+/** 把最终文本包成 ReadableStream，兼容现有前端流式消费 */
+function textToStream(text: string, signal?: AbortSignal) {
+  const encoder = new TextEncoder();
+  return new ReadableStream({
+    start(controller) {
+      if (signal?.aborted) {
+        controller.close();
+        return;
+      }
+      if (text) controller.enqueue(encoder.encode(text));
+      controller.close();
+    },
+  });
+}
+
 export const baseChat = async (
   msg: string,
   systemMsg: string,
@@ -32,34 +60,35 @@ export const baseChat = async (
   modelOptions?: ChatModelOptions,
 ) => {
   try {
-    const model = createChatModel(modelOptions);
-    // 最简单流式：把模型 chunk 文本直接推进 ReadableStream
-    const stream = await model.stream([
+    const model = createChatModel(modelOptions).bindTools(baseChatTools);
+    const messages: BaseMessage[] = [
       new SystemMessage(systemMsg),
       new HumanMessage(msg),
-    ]);
-    const encoder = new TextEncoder();
+    ];
 
-    // ReadableStream：流式响应，用于前端消费
-    return new ReadableStream({
-      async start(controller) {
-        const onAbort = () => controller.close();
-        signal?.addEventListener("abort", onAbort);
+    // 工具闭环：决定调用 → 执行 → ToolMessage 回注 → 再生成（最多 3 轮）
+    let aiMessage = (await model.invoke(messages, { signal })) as AIMessage;
+    messages.push(aiMessage);
 
-        try {
-          for await (const chunk of stream) {
-            if (signal?.aborted) break;
-            const text = toTextContent(chunk.content);
-            if (text) controller.enqueue(encoder.encode(text));
-          }
-          controller.close();
-        } catch (error) {
-          if (!signal?.aborted) controller.error(error);
-        } finally {
-          signal?.removeEventListener("abort", onAbort);
-        }
-      },
-    });
+    for (let i = 0; i < 3 && aiMessage.tool_calls?.length; i++) {
+      for (const call of aiMessage.tool_calls) {
+        const selected = baseChatToolsByName[call.name];
+        // 传完整 ToolCall，满足 StructuredTool 入参类型
+        const result = selected
+          ? await selected.invoke(call)
+          : `未知工具: ${call.name}`;
+        messages.push(
+          new ToolMessage({
+            content: typeof result === "string" ? result : JSON.stringify(result),
+            tool_call_id: call.id ?? call.name,
+          }),
+        );
+      }
+      aiMessage = (await model.invoke(messages, { signal })) as AIMessage;
+      messages.push(aiMessage);
+    }
+
+    return textToStream(toTextContent(aiMessage.content), signal);
   } catch (error) {
     console.error(error);
     // 勿直接 return error：前端 String(Error) 会变成 [object Object]

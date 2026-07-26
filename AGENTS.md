@@ -62,6 +62,7 @@ components/           # React components, barrel-exported from index.ts
 lib/
   api/                # Client-side fetch wrapper (ApiClient class)
   server/             # Server-only: chat + rag + model factory, response helpers
+    tools/            # Agent tools（LangChain tool / function calling，阶段三）
   settings.ts         # 前端设置读写（localStorage）+ chatModelPayload()
 docs/
   RAG.md              # RAG 从 0 到 1 步骤说明
