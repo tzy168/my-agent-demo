@@ -18,7 +18,6 @@ const md = new MarkdownIt({
 const MsgBlock = ({ role, content }: MsgBlockProps) => {
   const isHuman = role === "human";
   const html = md.render(content ?? "");
-  console.log('html', html);
 
   return (
     <div className={isHuman ? "msg-row-end" : "msg-row-start"}>

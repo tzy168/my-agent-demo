@@ -73,6 +73,7 @@ const Rag = () => {
     void refreshStatus();
   }, []);
 
+  // 相当于上传文件到模型知识库里
   const handleUpload = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -87,6 +88,7 @@ const Rag = () => {
       body.append("file", file);
       if (clearBeforeUpload) body.append("clear", "1");
 
+      // 上传文件 -> init文件 -> 文件切片（滑动窗口切块）-> 切块入嵌入模型 -> 返回结果
       const res = await fetch(API_ROUTES.RAG_UPLOAD, { method: "POST", body });
       const json = await res.json();
       if (json.code !== 0) throw new Error(json.message || "上传失败");

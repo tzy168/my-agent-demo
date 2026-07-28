@@ -13,6 +13,7 @@ type StoredChunk = {
 const store: StoredChunk[] = [];
 
 // 嵌入仍走本地 Ollama；对话生成可按设置切换 DeepSeek
+// 创建嵌入模型
 const embeddings = new OllamaEmbeddings({
   model: modelConfig.ollama.embedModel,
   baseUrl: modelConfig.ollama.host,
@@ -32,20 +33,37 @@ function cosineSimilarity(a: number[], b: number[]): number {
   return denom === 0 ? 0 : dot / denom;
 }
 
-/** 按字符切块；overlap 保留上下文衔接 */
+/**
+ *  按字符切块；overlap 保留上下文衔接 
+ *  @param text 文本
+ *  @param chunkSize 每个块的大小
+ *  @param overlap 重叠的大小
+ *  @returns 切块后的文本
+ */
 function splitText(text: string, chunkSize = 400, overlap = 60): string[] {
+  console.log('Rag upload step 3：splitText');
+
+  // 文本规范化 把 Windows 换行 \r\n 统一成 Unix 换行 \n
   const cleaned = text.replace(/\r\n/g, "\n").trim();
   if (!cleaned) return [];
+  // 如果文本长度小于等于 chunkSize，则直接返回
   if (cleaned.length <= chunkSize) return [cleaned];
 
+  // 切小是为了能嵌、能检；重叠是为了切点不断义
+  // 滑动窗口切块
   const chunks: string[] = [];
   let start = 0;
   while (start < cleaned.length) {
+    // 计算当前块的结束位置
     const end = Math.min(start + chunkSize, cleaned.length);
+    // 将当前块添加到结果数组中
     chunks.push(cleaned.slice(start, end));
+    // 如果当前块的结束位置大于等于文本长度，则跳出循环
     if (end >= cleaned.length) break;
+    // 计算下一个块的开始位置
     start = end - overlap;
   }
+  // 返回切块后的文本
   return chunks;
 }
 
@@ -88,20 +106,30 @@ export function clearRagStore() {
  * @param source 文件名，便于溯源
  */
 export async function ingestText(text: string, source: string) {
+  console.log('Rag upload step 2：ingestText');
+
+  // 获取切块后的文本，滑动窗口切块
   const chunks = splitText(text);
   if (chunks.length === 0) {
     throw new Error("文件内容为空");
   }
 
+
+  console.log('Rag upload step 4：embeddings');
+  // 把每段文本变成向量（embedding）
   const vectors = await embeddings.embedDocuments(chunks);
+  console.log("🚀 ~ ingestText ~ vectors:", vectors)
+
+  console.log('Rag upload step 5：store');
+  // 把每段文本和对应的向量存入内存
   for (let i = 0; i < chunks.length; i++) {
     store.push({
       content: chunks[i]!,
-      embedding: vectors[i]!,
-      source,
+      embedding: vectors[i]!, // 向量
+      source, // 来源
     });
   }
-
+  // 返回结果
   return {
     source,
     addedChunks: chunks.length,
@@ -116,18 +144,27 @@ export type RagHit = {
   score: number;
 };
 
-/** 向量检索 Top-K，返回带相似度的片段 */
+/** 
+ * 向量检索 Top-K，返回带相似度的片段 
+ * @param query 查询词
+ * @param k 返回的相似度片段数量
+ * @returns 带相似度的片段
+ */
 export async function searchRag(query: string, k = 4): Promise<RagHit[]> {
+  console.log('Rag search step 1：searchRag');
+
   if (store.length === 0) {
     throw new Error("知识库为空，请先上传文件");
   }
 
+  console.log('Rag search step 2：embeddings');
   const q = await embeddings.embedQuery(query);
+  console.log("🚀 ~ searchRag ~ q:", q)
   return store
     .map((chunk) => ({
-      content: chunk.content,
-      source: chunk.source,
-      score: cosineSimilarity(q, chunk.embedding),
+      content: chunk.content,// 内容
+      source: chunk.source,// 来源
+      score: cosineSimilarity(q, chunk.embedding),// 相似度
     }))
     .sort((a, b) => b.score - a.score)
     .slice(0, Math.min(k, store.length));
