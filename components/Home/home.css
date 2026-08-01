@@ -13,24 +13,99 @@
 }
 
 @utility brand-hero {
-  /* difference + 白字：相对底层背景实时取负色 */
+  /* 默认空心描边；选中见 brand-hero-active */
   font-family: var(--font-display);
-  font-variation-settings:
-    "opsz" 144,
-    "SOFT" 50;
-  @apply select-none p-2 font-bold leading-none text-white mix-blend-difference;
-  font-size: clamp(3rem, 12vw, 7rem);
+  @apply select-none p-2 font-bold leading-none text-transparent mix-blend-difference;
+  font-size: clamp(4rem, 12vw, 8rem);
+  -webkit-text-stroke: 1.5px #fff;
+  paint-order: stroke fill;
+  transition:
+    color 0.35s var(--ease-editorial),
+    -webkit-text-stroke-width 0.35s var(--ease-editorial);
   animation: brand-enter-x 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility brand-hero-active {
+  /* 实心白字 + difference，即原 brand-hero 选中态 */
+  @apply text-white;
+  -webkit-text-stroke-width: 0;
 }
 
 @utility brand-hero-accent {
   font-family: var(--font-display);
   font-style: italic;
-  font-variation-settings:
-    "opsz" 144,
-    "SOFT" 100;
   @apply select-none p-2 font-semibold leading-none text-accent;
   font-size: clamp(1.75rem, 5vw, 3.5rem);
   /* 略晚于主标题，形成错层进场 */
   animation: brand-enter-x 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+/* 右侧正方体：绝对定位叠层，不挤占左侧文案流 */
+@utility home-cube-stage {
+  @apply pointer-events-none absolute inset-y-0 hidden items-center justify-center md:flex;
+  /* 相对右缘内收，整体略往左 */
+  right: 12%;
+  width: min(55%, 40rem);
+  perspective: 1200px;
+  perspective-origin: 50% 45%;
+}
+
+@utility home-cube {
+  /* 边长 ×2 */
+  --cube: clamp(13rem, 28vw, 22rem);
+  position: relative;
+  width: var(--cube);
+  height: var(--cube);
+  transform-style: preserve-3d;
+}
+
+@utility home-cube-face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--ink) 28%, transparent);
+  backface-visibility: hidden;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  box-shadow: inset 0 0 2.5rem rgb(0 0 0 / 0.18);
+}
+
+/* 六面各色 + 半透明，能透出背后 Grainient */
+@utility home-cube-face-front {
+  transform: rotateY(0deg) translateZ(calc(var(--cube) / 2));
+  background: rgb(196 90 42 / 0.55);
+  color: #f6f3ec;
+}
+
+@utility home-cube-face-back {
+  /* rotateX(180) 翻到背面时字会倒，本地再转 180° 摆正 */
+  transform: rotateY(180deg) rotateZ(180deg) translateZ(calc(var(--cube) / 2));
+  background: rgb(42 34 28 / 0.55);
+  color: #e8dcc8;
+}
+
+@utility home-cube-face-right {
+  transform: rotateY(90deg) translateZ(calc(var(--cube) / 2));
+  background: rgb(240 230 212 / 0.55);
+  color: #1c1814;
+}
+
+@utility home-cube-face-left {
+  transform: rotateY(-90deg) translateZ(calc(var(--cube) / 2));
+  background: rgb(107 62 40 / 0.55);
+  color: #f6f3ec;
+}
+
+@utility home-cube-face-top {
+  transform: rotateX(90deg) translateZ(calc(var(--cube) / 2));
+  background: rgb(212 165 116 / 0.55);
+  color: #1c1814;
+}
+
+@utility home-cube-face-bottom {
+  transform: rotateX(-90deg) translateZ(calc(var(--cube) / 2));
+  background: rgb(20 17 14 / 0.55);
+  color: #c45a2a;
 }
