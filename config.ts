@@ -12,7 +12,7 @@ export const modelConfig = {
   deepseek: {
     // DeepSeek OpenAI 兼容接口
     baseUrl: process.env.DEEPSEEK_BASE_URL || "https://api.deepseek.com",
-    chatModel: process.env.DEEPSEEK_CHAT_MODEL || "deepseek-chat",
+    chatModel: process.env.DEEPSEEK_CHAT_MODEL || "deepseek-v4-flash",
     temperature: process.env.DEEPSEEK_TEMPERATURE || 0.3,
     // 服务端兜底；优先用请求体 / 设置页传入的 apiKey
     apiKey: process.env.DEEPSEEK_API_KEY || "",

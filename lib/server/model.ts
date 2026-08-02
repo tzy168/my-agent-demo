@@ -40,6 +40,8 @@ export function createChatModel(options: ChatModelOptions = {}) {
         baseURL: modelConfig.deepseek.baseUrl,
       },
       temperature: Number(modelConfig.deepseek.temperature),
+      // DeepSeek OpenAI 兼容接口：显式开流，避免走非流式缓冲
+      streaming: true,
     });
   }
 

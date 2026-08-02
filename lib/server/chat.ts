@@ -2,8 +2,8 @@ import {
   SystemMessage,
   HumanMessage,
   ToolMessage,
+  type AIMessageChunk,
   type BaseMessage,
-  type AIMessage,
 } from "@langchain/core/messages";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
@@ -38,62 +38,77 @@ function toTextContent(content: unknown): string {
   return "";
 }
 
-/** 把最终文本包成 ReadableStream，兼容现有前端流式消费 */
-function textToStream(text: string, signal?: AbortSignal) {
-  const encoder = new TextEncoder();
-  return new ReadableStream({
-    start(controller) {
-      if (signal?.aborted) {
-        controller.close();
-        return;
-      }
-      if (text) controller.enqueue(encoder.encode(text));
-      controller.close();
-    },
-  });
-}
-
+/**
+ * baseChat：真流式输出 + 工具闭环（最多 3 轮 tool call）
+ * 以前用 invoke 整段生成再一次性塞进 Stream，DeepSeek/Ollama 都会「憋完再喷」
+ */
 export const baseChat = async (
   msg: string,
   systemMsg: string,
   signal?: AbortSignal,
   modelOptions?: ChatModelOptions,
 ) => {
-  try {
-    const model = createChatModel(modelOptions).bindTools(baseChatTools);
-    const messages: BaseMessage[] = [
-      new SystemMessage(systemMsg),
-      new HumanMessage(msg),
-    ];
+  const model = createChatModel(modelOptions).bindTools(baseChatTools);
+  const messages: BaseMessage[] = [
+    new SystemMessage(systemMsg),
+    new HumanMessage(msg),
+  ];
+  const encoder = new TextEncoder();
 
-    // 工具闭环：决定调用 → 执行 → ToolMessage 回注 → 再生成（最多 3 轮）
-    let aiMessage = (await model.invoke(messages, { signal })) as AIMessage;
-    messages.push(aiMessage);
+  return new ReadableStream({
+    async start(controller) {
+      const onAbort = () => controller.close();
+      signal?.addEventListener("abort", onAbort);
+      try {
+        // 首轮回答 + 最多 3 次工具后再生成
+        for (let round = 0; round < 4; round++) {
+          if (signal?.aborted) break;
 
-    for (let i = 0; i < 3 && aiMessage.tool_calls?.length; i++) {
-      for (const call of aiMessage.tool_calls) {
-        const selected = baseChatToolsByName[call.name];
-        // 传完整 ToolCall，满足 StructuredTool 入参类型
-        const result = selected
-          ? await selected.invoke(call)
-          : `未知工具: ${call.name}`;
-        messages.push(
-          new ToolMessage({
-            content: typeof result === "string" ? result : JSON.stringify(result),
-            tool_call_id: call.id ?? call.name,
-          }),
-        );
+          const stream = await model.stream(messages, { signal });
+          let gathered: AIMessageChunk | undefined;
+
+          for await (const chunk of stream) {
+            if (signal?.aborted) break;
+            gathered = gathered ? gathered.concat(chunk) : chunk;
+            const text = toTextContent(chunk.content);
+            if (text) controller.enqueue(encoder.encode(text));
+          }
+
+          if (!gathered) break;
+          messages.push(gathered);
+
+          const toolCalls = gathered.tool_calls;
+          if (!toolCalls?.length || round >= 3) break;
+
+          for (const call of toolCalls) {
+            const selected = baseChatToolsByName[call.name];
+            // 传完整 ToolCall，满足 StructuredTool 入参类型
+            const result = selected
+              ? await selected.invoke(call)
+              : `未知工具: ${call.name}`;
+            messages.push(
+              new ToolMessage({
+                content:
+                  typeof result === "string" ? result : JSON.stringify(result),
+                tool_call_id: call.id ?? call.name,
+              }),
+            );
+          }
+        }
+        controller.close();
+      } catch (error) {
+        console.error(error);
+        if (!signal?.aborted) {
+          // 勿直接 error(非 Error)：前端 String 会变成 [object Object]
+          controller.error(
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
+      } finally {
+        signal?.removeEventListener("abort", onAbort);
       }
-      aiMessage = (await model.invoke(messages, { signal })) as AIMessage;
-      messages.push(aiMessage);
-    }
-
-    return textToStream(toTextContent(aiMessage.content), signal);
-  } catch (error) {
-    console.error(error);
-    // 勿直接 return error：前端 String(Error) 会变成 [object Object]
-    throw error instanceof Error ? error : new Error(String(error));
-  }
+    },
+  });
 };
 
 /**

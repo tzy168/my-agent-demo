@@ -24,7 +24,9 @@ export async function POST(request: Request) {
     return new Response(stream, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache",
+        "Cache-Control": "no-cache, no-transform",
+        // 避免反向代理把 SSE/文本流缓冲成整包
+        "X-Accel-Buffering": "no",
       },
     });
   } catch (error) {
