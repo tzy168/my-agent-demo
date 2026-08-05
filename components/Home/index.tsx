@@ -13,6 +13,15 @@ gsap.registerPlugin(useGSAP, ScrollTrigger, Observer);
 
 const LABELS = ["TH.AGENT", "CHAT", "RAG", "DOCS", "SETTINGS"] as const;
 
+/** 与 LABELS 下标一一对应；不能直接用 label 当 APP_ROUTES key（TH.AGENT ≠ HOME） */
+const LABEL_HREFS = [
+  APP_ROUTES.HOME,
+  APP_ROUTES.CHAT,
+  APP_ROUTES.RAG,
+  APP_ROUTES.DOCS,
+  APP_ROUTES.SETTINGS,
+] as const;
+
 /** 面文案与 active 对齐；左面备用 */
 const CUBE_FACES = [
   { className: "home-cube-face-front", label: "TH" },
@@ -116,7 +125,7 @@ const Home = () => {
       ref={rootRef}
       className="page-bleed flex flex-col items-start justify-end"
       onClick={() => {
-        router.push(APP_ROUTES[active as keyof typeof APP_ROUTES]);
+        router.push(LABEL_HREFS[activeRef.current]);
       }}
     >
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
