@@ -27,7 +27,7 @@ const MsgBlock = ({ role, content, loading }: MsgBlockProps) => {
     <div className={isHuman ? "msg-row-end" : "msg-row-start"}>
       <div className={isHuman ? "msg-bubble-human" : "msg-bubble-ai"}>
         {showLoader ? (
-          <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <div><Loader /></div>
             <div>思考中...</div>
           </div>
