@@ -57,8 +57,9 @@
 }
 
 @utility chat-role-btn {
-  @apply cursor-pointer rounded-lg border-0 px-2.5 py-1 text-sm font-medium text-secondary;
+  @apply cursor-pointer rounded-lg px-2.5 py-1 text-sm font-medium text-secondary;
   background: transparent;
+  border: 1px solid var(--border);
   transition:
     background-color 0.2s var(--ease-editorial),
     color 0.2s var(--ease-editorial);
@@ -150,6 +151,12 @@
   @apply msg-bubble rounded-2xl rounded-br-md bg-accent text-on-accent;
   @apply [&_a]:text-on-accent [&_code]:bg-white/15 [&_pre]:bg-white/10;
   @apply [&_blockquote]:border-on-accent/40 [&_blockquote]:text-on-accent/90;
+}
+
+/* 人选气泡本身已是 accent，选中高亮改用加深底，避免看不清 */
+.msg-bubble-human ::selection {
+  background: color-mix(in srgb, #000 35%, var(--accent));
+  color: var(--on-accent);
 }
 
 @utility msg-bubble-ai {

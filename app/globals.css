@@ -30,8 +30,9 @@ body {
 }
 
 ::selection {
-  background: var(--accent-soft);
-  color: var(--accent);
+  /* accent 字 + accent-soft 底在人选气泡（bg-accent）上会糊成一片 */
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 @media (prefers-reduced-motion: reduce) {
