@@ -4,3 +4,5 @@
  */
 
 export { getNowTimeTool } from "./time";
+export { webSearchTool } from "./web_search";
+

@@ -7,14 +7,17 @@ import {
 } from "@langchain/core/messages";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
+import type { StructuredToolInterface } from "@langchain/core/tools";
 import { createChatModel, type ChatModelOptions } from "./model";
-import { getNowTimeTool } from "./tools";
+import { getNowTimeTool, webSearchTool } from "./tools";
 
-/** 当前 baseChat 绑定的工具；按 name 查找执行 */
-const baseChatTools = [getNowTimeTool];
-const baseChatToolsByName = Object.fromEntries(
-  baseChatTools.map((t) => [t.name, t]),
-);
+/** 当前 baseChat 绑定的工具；标成公共基类型，避免异构 schema 的 invoke 签名联合 */
+const baseChatTools: StructuredToolInterface[] = [
+  getNowTimeTool,
+  webSearchTool,
+];
+const baseChatToolsByName: Record<string, StructuredToolInterface> =
+  Object.fromEntries(baseChatTools.map((t) => [t.name, t]));
 
 /** LangChain content 可能是 string 或 ContentBlock[]，统一抽成纯文本 */
 function toTextContent(content: unknown): string {
