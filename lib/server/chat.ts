@@ -48,10 +48,12 @@ function toTextContent(content: unknown): string {
 export const baseChat = async (
   msg: string,
   systemMsg: string,
+  webSearch: boolean,
   signal?: AbortSignal,
   modelOptions?: ChatModelOptions,
 ) => {
-  const model = createChatModel(modelOptions).bindTools(baseChatTools);
+  const tools = webSearch ? baseChatTools : baseChatTools.filter((t) => t.name !== "web_search");
+  const model = createChatModel(modelOptions).bindTools(tools);
   const messages: BaseMessage[] = [
     new SystemMessage(systemMsg),
     new HumanMessage(msg),

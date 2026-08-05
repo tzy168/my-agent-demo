@@ -21,47 +21,23 @@
   @apply m-auto text-sm text-muted;
 }
 
+/* 整块 composer：上输入、下工具栏，发送不再叠在文字上 */
 @utility chat-form {
-  @apply relative w-full shrink-0;
-}
-
-/* 有角色标签时给 input 让出左侧空间 */
-.chat-form:has(.chat-input-tag) .chat-input {
-  padding-left: 4.75rem;
-}
-
-@utility chat-input-tag {
-  @apply absolute left-2 top-1/2 z-10 flex -translate-y-1/2 items-center gap-0.5 rounded-lg px-2 py-1.5 text-sm font-medium text-accent;
-  background: var(--accent-soft);
-}
-
-@utility chat-input-tag-clear {
-  @apply ml-0.5 inline-flex h-4 w-4 cursor-pointer items-center justify-center rounded border-0 bg-transparent p-0 text-sm leading-none text-accent;
-  opacity: 0.7;
-}
-
-.chat-input-tag-clear:hover {
-  opacity: 1;
-}
-
-@utility chat-input {
-  @apply w-full h-12 rounded-2xl border bg-surface py-2 pl-3 pr-24 text-ink outline-none;
+  @apply flex w-full shrink-0 flex-col gap-2 rounded-2xl border bg-surface p-2.5;
   border-color: var(--border);
   transition:
     border-color 0.35s var(--ease-editorial),
-    box-shadow 0.35s var(--ease-editorial),
-    background-color 0.35s var(--ease-editorial);
+    box-shadow 0.35s var(--ease-editorial);
 }
 
-.chat-input:hover {
-  border-color: var(--border-strong);
-  background: var(--surface-2);
-}
-
-.chat-input:focus {
+.chat-form:focus-within {
   border-color: var(--accent);
-  background: var(--surface);
   box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+@utility chat-input {
+  @apply max-h-36 min-h-11 w-full resize-none overflow-y-auto border-0 bg-transparent px-1.5 py-1 text-ink leading-normal outline-none scrollbar-none;
+  field-sizing: content;
 }
 
 .chat-input:disabled {
@@ -72,13 +48,39 @@
   color: var(--muted);
 }
 
-/* 发送钮定位；UI 用 btn-primary */
+@utility chat-form-bar {
+  @apply flex items-center justify-between gap-2;
+}
+
+@utility chat-roles {
+  @apply flex items-center gap-1.5;
+}
+
+@utility chat-role-btn {
+  @apply cursor-pointer rounded-lg border-0 px-2.5 py-1 text-sm font-medium text-secondary;
+  background: transparent;
+  transition:
+    background-color 0.2s var(--ease-editorial),
+    color 0.2s var(--ease-editorial);
+}
+
+.chat-role-btn:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.chat-role-btn[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+/* Rag 仍用绝对定位单行输入时的发送钮兜底；Chat 在 bar 里 shrink-0 */
 @utility chat-send {
-  @apply absolute right-1.5 top-1/2 -translate-y-1/2;
+  @apply shrink-0;
 }
 
 @utility chat-stop {
-  @apply absolute right-1.5 top-1/2 h-9 -translate-y-1/2 cursor-pointer rounded-xl border px-4 font-bold text-accent;
+  @apply h-9 shrink-0 cursor-pointer rounded-xl border px-4 font-bold text-accent;
   border-color: var(--accent);
   background: var(--accent-soft);
   transition:

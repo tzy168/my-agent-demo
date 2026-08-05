@@ -14,10 +14,11 @@ import { baseChat, errorResponse, parseModelOptions } from "@/lib/server";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { msg, systemMsg } = body;
+    const { msg, systemMsg, webSearch } = body;
     const stream = await baseChat(
       msg,
       systemMsg,
+      webSearch,
       request.signal,
       parseModelOptions(body),
     );

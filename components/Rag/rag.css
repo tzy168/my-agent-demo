@@ -152,7 +152,13 @@
 }
 
 @utility rag-chat-form {
-  @apply relative w-full max-w-none shrink-0;
+  @apply w-full max-w-none shrink-0;
+}
+
+/* Rag 无 form-bar，发送钮贴右下 */
+.rag-chat-form > .chat-send,
+.rag-chat-form > .chat-stop {
+  align-self: flex-end;
 }
 
 @utility rag-msg-wrap {
