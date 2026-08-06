@@ -1,6 +1,8 @@
 "use client";
 
 import { APP_ROUTES, isNavTabActive, NAV_TABS } from "@/constants/app.routes";
+import { SETTINGS_EVENT, readSettings } from "@/lib/settings";
+import type { LlmProvider } from "@/types/settings";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -24,12 +26,26 @@ export function NavTabs({ children }: NavTabsProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [theme, setTheme] = useState<Theme>("light");
+  const [provider, setProvider] = useState<LlmProvider>("ollama");
   const settingsActive = isNavTabActive(pathname, APP_ROUTES.SETTINGS);
   // 首页全屏 hero，不展示顶栏
   const hideHeader = pathname === APP_ROUTES.HOME;
+  // DeepSeek 无本地嵌入，藏 RAG 入口
+  const tabs =
+    provider === "deepseek"
+      ? NAV_TABS.filter((t) => t.key !== "rag")
+      : NAV_TABS;
 
   useEffect(() => {
     setTheme(readTheme());
+    const syncProvider = () => setProvider(readSettings().provider);
+    syncProvider();
+    window.addEventListener(SETTINGS_EVENT, syncProvider);
+    window.addEventListener("storage", syncProvider);
+    return () => {
+      window.removeEventListener(SETTINGS_EVENT, syncProvider);
+      window.removeEventListener("storage", syncProvider);
+    };
   }, []);
 
   const toggleTheme = () => {
@@ -53,7 +69,7 @@ export function NavTabs({ children }: NavTabsProps) {
             TH
           </div>
           <nav className="nav-tabs">
-            {NAV_TABS.map((tab: { key: string; href: string; label: string }) => {
+            {tabs.map((tab) => {
               const isActive = isNavTabActive(pathname, tab.href);
               return (
                 <Link

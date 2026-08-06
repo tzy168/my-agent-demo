@@ -27,6 +27,8 @@ export type CubeParticlesHandle = {
 
 type Props = {
   className?: string;
+  /** DeepSeek 模式下立方体背面不标 RAG */
+  hideRag?: boolean;
 };
 
 /** 面填充密度：越高聚合后间隙越小 */
@@ -41,6 +43,8 @@ const TEXT_RES = 160;
  * 文案对齐原 DOM：TH / RAG / SET / AI / DOCS / CHAT
  */
 const FACE_LABELS = ["TH", "RAG", "SET", "AI", "DOCS", "CHAT"] as const;
+/** DeepSeek：背面改 LLM，首页不出现 RAG 文案 */
+const FACE_LABELS_NO_RAG = ["TH", "LLM", "SET", "AI", "DOCS", "CHAT"] as const;
 
 const FACE_COLORS: [number, number, number][] = [
   [196 / 255, 90 / 255, 42 / 255],
@@ -173,7 +177,7 @@ function pushParticle(
   arrays.faceUv.push(ou, ov);
 }
 
-function buildParticleData() {
+function buildParticleData(faceLabels: readonly string[] = FACE_LABELS) {
   const arrays = {
     home: [] as number[],
     free: [] as number[],
@@ -184,7 +188,7 @@ function buildParticleData() {
     faceUv: [] as number[],
   };
 
-  const labelUVs = FACE_LABELS.map((label) => sampleLabelUVs(label));
+  const labelUVs = faceLabels.map((label) => sampleLabelUVs(label));
 
   for (let f = 0; f < 6; f++) {
     const base = FACE_COLORS[f];
@@ -318,7 +322,7 @@ const VIEW_HEIGHT = 8.2;
 const CUBE_SCALE = 2.85;
 
 const CubeParticles = forwardRef<CubeParticlesHandle, Props>(
-  function CubeParticles({ className = "" }, ref) {
+  function CubeParticles({ className = "", hideRag = false }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const ctxRef = useRef<Ctx | null>(null);
     const pendingPoseRef = useRef<CubePose | null>(null);
@@ -327,7 +331,7 @@ const CubeParticles = forwardRef<CubeParticlesHandle, Props>(
       const container = containerRef.current;
       if (!container) return;
 
-      const data = buildParticleData();
+      const data = buildParticleData(hideRag ? FACE_LABELS_NO_RAG : FACE_LABELS);
       const renderer = new Renderer({
         webgl: 2,
         alpha: true,
@@ -508,7 +512,7 @@ const CubeParticles = forwardRef<CubeParticlesHandle, Props>(
           /* ignore */
         }
       };
-    }, []);
+    }, [hideRag]);
 
     useImperativeHandle(
       ref,

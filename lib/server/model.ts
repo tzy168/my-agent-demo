@@ -1,25 +1,40 @@
 import { ChatOllama } from "@langchain/ollama";
 import { ChatOpenAI } from "@langchain/openai";
 import { modelConfig } from "@/config";
-import type { LlmProvider } from "@/types/settings";
+import {
+  DEEPSEEK_MODELS,
+  type DeepSeekModel,
+  type LlmProvider,
+} from "@/types/settings";
 
 export type ChatModelOptions = {
   provider?: LlmProvider;
   /** DeepSeek 时必填（或走环境变量 DEEPSEEK_API_KEY） */
   apiKey?: string;
+  /** DeepSeek 聊天模型名；非法则回退环境变量默认 */
+  model?: DeepSeekModel;
 };
+
+function isDeepSeekModel(value: unknown): value is DeepSeekModel {
+  return (
+    typeof value === "string" &&
+    (DEEPSEEK_MODELS as readonly string[]).includes(value)
+  );
+}
 
 /** 从请求体解析模型参数；非法值忽略，回退默认 Ollama */
 export function parseModelOptions(body: {
   provider?: unknown;
   apiKey?: unknown;
+  model?: unknown;
 }): ChatModelOptions {
   const provider =
     body.provider === "ollama" || body.provider === "deepseek"
       ? (body.provider as LlmProvider)
       : undefined;
   const apiKey = typeof body.apiKey === "string" ? body.apiKey : undefined;
-  return { provider, apiKey };
+  const model = isDeepSeekModel(body.model) ? body.model : undefined;
+  return { provider, apiKey, model };
 }
 
 /** 按 provider 创建聊天模型；embedding 仍固定走 Ollama */
@@ -34,7 +49,8 @@ export function createChatModel(options: ChatModelOptions = {}) {
     }
 
     return new ChatOpenAI({
-      model: modelConfig.deepseek.chatModel,
+      // 请求体指定的模型优先，否则用环境变量默认
+      model: options.model ?? modelConfig.deepseek.chatModel,
       apiKey,
       configuration: {
         baseURL: modelConfig.deepseek.baseUrl,

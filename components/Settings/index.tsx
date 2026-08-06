@@ -24,9 +24,12 @@ export function Settings() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // 保留 Chat 页已选的 deepseekModel，避免设置页覆盖
+    const prev = readSettings();
     const next: AppSettings = {
       provider,
       deepseekApiKey: deepseekApiKey.trim(),
+      deepseekModel: prev.deepseekModel,
     };
     // DeepSeek 必须有 Key，否则保存时提示原生校验
     if (provider === "deepseek" && !next.deepseekApiKey) {

@@ -1,9 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { API_ROUTES } from "@/constants/api.routes";
-import { chatModelPayload } from "@/lib/settings";
+import {
+  SETTINGS_EVENT,
+  chatModelPayload,
+  readSettings,
+  writeSettings,
+} from "@/lib/settings";
 import useStreamingChat from "@/hooks/useStreamingChat";
+import {
+  DEEPSEEK_MODELS,
+  type DeepSeekModel,
+  type LlmProvider,
+} from "@/types/settings";
 import MsgBlock from "./MsgBlock";
 
 type ChatRole = "frontend" | "fullstack";
@@ -14,8 +24,27 @@ const ROLE_PROMPTS: Record<ChatRole, string> = {
 };
 
 const Chat = () => {
+  const modelSelectId = useId();
   const [role, setRole] = useState<ChatRole | null>(null);
   const [webSearch, setWebSearch] = useState(false);
+  const [provider, setProvider] = useState<LlmProvider>("ollama");
+  const [deepseekModel, setDeepseekModel] =
+    useState<DeepSeekModel>("deepseek-v4-flash");
+
+  useEffect(() => {
+    const sync = () => {
+      const s = readSettings();
+      setProvider(s.provider);
+      setDeepseekModel(s.deepseekModel);
+    };
+    sync();
+    window.addEventListener(SETTINGS_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(SETTINGS_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
 
   const {
     messages,
@@ -38,6 +67,11 @@ const Chat = () => {
   /** 前端 / 全栈互斥；再点一次取消 */
   const toggleRole = (next: ChatRole) => {
     setRole((prev) => (prev === next ? null : next));
+  };
+
+  const onModelChange = (model: DeepSeekModel) => {
+    setDeepseekModel(model);
+    writeSettings({ ...readSettings(), deepseekModel: model });
   };
 
   return (
@@ -83,6 +117,29 @@ const Chat = () => {
           />
           <div className="chat-form-bar">
             <div className="chat-roles">
+              {provider === "deepseek" ? (
+                <>
+                  <label className="sr-only" htmlFor={modelSelectId}>
+                    DeepSeek 模型
+                  </label>
+                  <select
+                    id={modelSelectId}
+                    name="deepseekModel"
+                    className="chat-model-select"
+                    value={deepseekModel}
+                    disabled={loading}
+                    onChange={(e) =>
+                      onModelChange(e.target.value as DeepSeekModel)
+                    }
+                  >
+                    {DEEPSEEK_MODELS.map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
+                  </select>
+                </>
+              ) : null}
               <button
                 type="button"
                 className="chat-role-btn"

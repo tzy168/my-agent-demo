@@ -4,25 +4,25 @@ import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
 import { Observer } from "gsap/Observer";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Grainient from "../Grainient";
 import CubeParticles, {
   type CubeParticlesHandle,
 } from "./CubeParticles";
 import { APP_ROUTES } from "@/constants/app.routes";
+import { SETTINGS_EVENT, readSettings } from "@/lib/settings";
+import type { LlmProvider } from "@/types/settings";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, Observer);
 
-const LABELS = ["TH.AGENT", "CHAT", "RAG", "DOCS", "SETTINGS"] as const;
-
-/** 与 LABELS 下标一一对应；不能直接用 label 当 APP_ROUTES key（TH.AGENT ≠ HOME） */
-const LABEL_HREFS = [
-  APP_ROUTES.HOME,
-  APP_ROUTES.CHAT,
-  APP_ROUTES.RAG,
-  APP_ROUTES.DOCS,
-  APP_ROUTES.SETTINGS,
+/** 与立方体翻面顺序对应；DeepSeek 时去掉 RAG */
+const HOME_ITEMS = [
+  { label: "TH.AGENT", href: APP_ROUTES.HOME, poseIdx: 0 },
+  { label: "CHAT", href: APP_ROUTES.CHAT, poseIdx: 1 },
+  { label: "RAG", href: APP_ROUTES.RAG, poseIdx: 2 },
+  { label: "DOCS", href: APP_ROUTES.DOCS, poseIdx: 3 },
+  { label: "SETTINGS", href: APP_ROUTES.SETTINGS, poseIdx: 4 },
 ] as const;
 
 /** 始终保持的斜视倾角：对应面最突出，但不正对镜头 */
@@ -31,6 +31,7 @@ const CUBE_TILT = { rotateX: -22, rotateY: -32 };
 /**
  * WebGL 右手系姿态（与旧 CSS 立方体符号相反）：
  * rotateX 负向翻面 → 底 / 背 / 顶依次转到镜头前，文字才能正向。
+ * 下标与 HOME_ITEMS.poseIdx 对齐（含 RAG 位）。
  */
 const CUBE_POSES = [
   { rotateX: 0 + CUBE_TILT.rotateX, rotateY: 0 + CUBE_TILT.rotateY },
@@ -47,12 +48,38 @@ type CubeMode = "solid" | "dispersing" | "drift" | "assembling";
 const Home = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const particlesRef = useRef<CubeParticlesHandle>(null);
-  const [active, setActive] = useState<(typeof LABELS)[number]>("TH.AGENT");
+  const [provider, setProvider] = useState<LlmProvider>("ollama");
+  // DeepSeek 模式首页不展示 RAG 入口
+  const items =
+    provider === "deepseek"
+      ? HOME_ITEMS.filter((i) => i.label !== "RAG")
+      : HOME_ITEMS;
+  const [active, setActive] = useState<(typeof HOME_ITEMS)[number]["label"]>(
+    "TH.AGENT",
+  );
   const activeRef = useRef(0);
   const lockedRef = useRef(false);
   const modeRef = useRef<CubeMode>("solid");
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const sync = () => setProvider(readSettings().provider);
+    sync();
+    window.addEventListener(SETTINGS_EVENT, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(SETTINGS_EVENT, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  // provider 切换后重置到第一面，避免索引越界
+  useEffect(() => {
+    activeRef.current = 0;
+    setActive(items[0]?.label ?? "TH.AGENT");
+    particlesRef.current?.setPose(CUBE_POSES[items[0]?.poseIdx ?? 0]);
+  }, [provider]);
 
   useGSAP(
     (_ctx, contextSafe) => {
@@ -60,8 +87,9 @@ const Home = () => {
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
-      // 初始对准 TH.AGENT（WebGL 未就绪时会进 pendingPose）
-      particlesRef.current?.setPose(CUBE_POSES[0]);
+      // 初始对准当前第一项（WebGL 未就绪时会进 pendingPose）
+      particlesRef.current?.setPose(CUBE_POSES[items[0]?.poseIdx ?? 0]);
+      activeRef.current = 0;
 
       const clearIdle = () => {
         if (idleTimerRef.current !== null) {
@@ -101,7 +129,8 @@ const Home = () => {
         modeRef.current = "assembling";
         await particles.assemble();
         // 聚回当前 active 姿态（散开期间未翻面）
-        particles.setPose(CUBE_POSES[activeRef.current]);
+        const poseIdx = items[activeRef.current]?.poseIdx ?? 0;
+        particles.setPose(CUBE_POSES[poseIdx]);
         modeRef.current = "solid";
         armIdle();
       };
@@ -117,16 +146,16 @@ const Home = () => {
 
       const step = (next: number) => {
         if (lockedRef.current) return;
-        const clamped = Math.max(0, Math.min(LABELS.length - 1, next));
+        const clamped = Math.max(0, Math.min(items.length - 1, next));
         if (clamped === activeRef.current) return;
         const particles = particlesRef.current;
         if (!particles) return;
 
         lockedRef.current = true;
         activeRef.current = clamped;
-        setActive(LABELS[clamped]);
+        setActive(items[clamped].label);
         clearIdle();
-        void particles.rotateTo(CUBE_POSES[clamped]).then(() => {
+        void particles.rotateTo(CUBE_POSES[items[clamped].poseIdx]).then(() => {
           lockedRef.current = false;
           armIdle();
         });
@@ -148,7 +177,7 @@ const Home = () => {
             return;
           }
           const next =
-            activeRef.current === LABELS.length - 1
+            activeRef.current === items.length - 1
               ? 0
               : activeRef.current + 1;
           goTo(next);
@@ -160,7 +189,7 @@ const Home = () => {
           }
           const next =
             activeRef.current === 0
-              ? LABELS.length - 1
+              ? items.length - 1
               : activeRef.current - 1;
           goTo(next);
         },
@@ -173,7 +202,7 @@ const Home = () => {
         obs.kill();
       };
     },
-    { scope: rootRef },
+    { scope: rootRef, dependencies: [provider] },
   );
 
   return (
@@ -181,7 +210,8 @@ const Home = () => {
       ref={rootRef}
       className="page-bleed flex flex-col items-start justify-end"
       onClick={() => {
-        router.push(LABEL_HREFS[activeRef.current]);
+        const href = items[activeRef.current]?.href;
+        if (href) router.push(href);
       }}
     >
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
@@ -211,21 +241,27 @@ const Home = () => {
         />
       </div>
 
-      {/* 全舞台粒子立方体（实心/散开同一套） */}
+      {/* 全舞台粒子立方体（实心/散开同一套）；key 保证切 provider 时重建面文字 */}
       <div className="home-cube-stage" aria-hidden="true">
-        <CubeParticles ref={particlesRef} />
+        <CubeParticles
+          key={provider}
+          ref={particlesRef}
+          hideRag={provider === "deepseek"}
+        />
       </div>
 
       <div className="home-copy">
-        {LABELS.map((label) => (
+        {items.map((item) => (
           <div
-            key={label}
+            key={item.label}
             className={
-              label === active ? "brand-hero brand-hero-active" : "brand-hero"
+              item.label === active
+                ? "brand-hero brand-hero-active"
+                : "brand-hero"
             }
-            aria-current={label === active ? "true" : undefined}
+            aria-current={item.label === active ? "true" : undefined}
           >
-            {label}
+            {item.label}
           </div>
         ))}
         <div className="brand-hero-accent">My Agent Demo</div>
