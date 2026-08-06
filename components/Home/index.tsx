@@ -28,13 +28,16 @@ const LABEL_HREFS = [
 /** 始终保持的斜视倾角：对应面最突出，但不正对镜头 */
 const CUBE_TILT = { rotateX: -22, rotateY: -32 };
 
-/** 与 LABELS 下标一一对应：下滑 index+ → rotateX 正向翻面，再叠斜角 */
+/**
+ * WebGL 右手系姿态（与旧 CSS 立方体符号相反）：
+ * rotateX 负向翻面 → 底 / 背 / 顶依次转到镜头前，文字才能正向。
+ */
 const CUBE_POSES = [
   { rotateX: 0 + CUBE_TILT.rotateX, rotateY: 0 + CUBE_TILT.rotateY },
-  { rotateX: 90 + CUBE_TILT.rotateX, rotateY: 0 + CUBE_TILT.rotateY },
-  { rotateX: 180 + CUBE_TILT.rotateX, rotateY: 0 + CUBE_TILT.rotateY },
-  { rotateX: 270 + CUBE_TILT.rotateX, rotateY: 0 + CUBE_TILT.rotateY },
-  { rotateX: 360 + CUBE_TILT.rotateX, rotateY: -90 + CUBE_TILT.rotateY },
+  { rotateX: -90 + CUBE_TILT.rotateX, rotateY: 0 + CUBE_TILT.rotateY },
+  { rotateX: -180 + CUBE_TILT.rotateX, rotateY: 0 + CUBE_TILT.rotateY },
+  { rotateX: -270 + CUBE_TILT.rotateX, rotateY: 0 + CUBE_TILT.rotateY },
+  { rotateX: -360 + CUBE_TILT.rotateX, rotateY: -90 + CUBE_TILT.rotateY },
 ] as const;
 
 const IDLE_MS = 5000;

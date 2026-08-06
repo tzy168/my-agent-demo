@@ -79,6 +79,19 @@ const FACE_POS: Array<(u: number, v: number, h: number) => [number, number, numb
   (u, v, h) => [(u - 0.5) * 2 * h, -h, (v - 0.5) * 2 * h],
 ];
 
+/**
+ * 各面转到镜头前（active）时，校正 UV，使文字 u→右、v→上。
+ * 背面经 rotX(±180) 会倒立，需旋转 180°（与旧 CSS rotateZ(180) 同理）。
+ */
+const FACE_UV_ORIENT: Array<(u: number, v: number) => [number, number]> = [
+  (u, v) => [u, v], // front TH
+  (u, v) => [1 - u, 1 - v], // back RAG
+  (u, v) => [u, v], // right SET
+  (u, v) => [u, v], // left AI
+  (u, v) => [u, v], // top DOCS
+  (u, v) => [u, v], // bottom CHAT
+];
+
 /** 从 canvas 栅格采样文字 UV（v 向上） */
 function sampleLabelUVs(label: string): Array<{ u: number; v: number }> {
   const canvas = document.createElement("canvas");
@@ -137,9 +150,10 @@ function pushParticle(
 ) {
   const { u, v, face, rgb } = opts;
   const shade = opts.shade ?? 1;
+  const [ou, ov] = FACE_UV_ORIENT[face](u, v);
   const posAt = FACE_POS[face];
-  const [hx, hy, hz] = posAt(u, v, HALF);
-  const [fx, fy, fz] = posAt(u, v, HALF * EXPAND);
+  const [hx, hy, hz] = posAt(ou, ov, HALF);
+  const [fx, fy, fz] = posAt(ou, ov, HALF * EXPAND);
   const [nx, ny, nz] = FACE_NORMALS[face];
 
   arrays.home.push(hx, hy, hz);
@@ -156,7 +170,7 @@ function pushParticle(
     face + Math.random(),
   );
   arrays.normal.push(nx, ny, nz);
-  arrays.faceUv.push(u, v);
+  arrays.faceUv.push(ou, ov);
 }
 
 function buildParticleData() {
