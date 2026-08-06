@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { API_ROUTES } from "@/constants/api.routes";
 import {
   SETTINGS_EVENT,
@@ -10,11 +10,11 @@ import {
 } from "@/lib/settings";
 import useStreamingChat from "@/hooks/useStreamingChat";
 import {
-  DEEPSEEK_MODELS,
   type DeepSeekModel,
   type LlmProvider,
 } from "@/types/settings";
 import MsgBlock from "./MsgBlock";
+import { ModelSelect } from "./ModelSelect";
 
 type ChatRole = "frontend" | "fullstack";
 
@@ -24,7 +24,6 @@ const ROLE_PROMPTS: Record<ChatRole, string> = {
 };
 
 const Chat = () => {
-  const modelSelectId = useId();
   const [role, setRole] = useState<ChatRole | null>(null);
   const [webSearch, setWebSearch] = useState(false);
   const [provider, setProvider] = useState<LlmProvider>("ollama");
@@ -118,27 +117,11 @@ const Chat = () => {
           <div className="chat-form-bar">
             <div className="chat-roles">
               {provider === "deepseek" ? (
-                <>
-                  <label className="sr-only" htmlFor={modelSelectId}>
-                    DeepSeek 模型
-                  </label>
-                  <select
-                    id={modelSelectId}
-                    name="deepseekModel"
-                    className="chat-model-select"
-                    value={deepseekModel}
-                    disabled={loading}
-                    onChange={(e) =>
-                      onModelChange(e.target.value as DeepSeekModel)
-                    }
-                  >
-                    {DEEPSEEK_MODELS.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
-                  </select>
-                </>
+                <ModelSelect
+                  value={deepseekModel}
+                  disabled={loading}
+                  onChange={onModelChange}
+                />
               ) : null}
               <button
                 type="button"

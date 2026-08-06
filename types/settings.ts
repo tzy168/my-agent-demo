@@ -9,6 +9,12 @@ export const DEEPSEEK_MODELS: readonly DeepSeekModel[] = [
   "deepseek-v4-flash",
 ] as const;
 
+/** 工具栏 select 短标；value 仍用完整 model id */
+export const DEEPSEEK_MODEL_LABELS: Record<DeepSeekModel, string> = {
+  "deepseek-v4-flash": "Flash",
+  "deepseek-v4-pro": "Pro",
+};
+
 /** 前端设置（localStorage 持久化） */
 export type AppSettings = {
   provider: LlmProvider;
