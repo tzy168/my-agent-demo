@@ -38,6 +38,7 @@
   font-size: clamp(1.75rem, 5vw, 3.5rem);
   /* 略晚于主标题，形成错层进场 */
   animation: brand-enter-x 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+  text-wrap: nowrap;
 }
 
 /* 左侧文案列：限制宽度给右侧舞台，但不压字号 */
