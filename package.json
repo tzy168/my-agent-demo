@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev & ollama run qwen3.5:4b",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "ollama": "ollama run qwen3.5:4b"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
