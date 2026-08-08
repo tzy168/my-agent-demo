@@ -31,7 +31,7 @@ Routes use the `(main)` route group with a shared layout (`app/(main)/layout.tsx
 | `/chat` | `app/(main)/chat/page.tsx` | Streaming AI chat with role toggle + 联网搜索 toggle |
 | `/rag` | `app/(main)/rag/page.tsx` | RAG demo：上传、相似度检索、RAG Chat（见 `docs/RAG.md`） |
 | `/docs` | `app/(main)/docs/page.tsx` | Static docs on building RAG with this stack |
-| `/settings` | `app/(main)/settings/page.tsx` | 设置：切换 Ollama / DeepSeek，填 DeepSeek API Key 与模型（localStorage） |
+| `/settings` | `app/(main)/settings/page.tsx` | 设置：主题色板（`editorial` / `mono` / `verdant`）+ Ollama / DeepSeek + API Key（localStorage） |
 
 Top nav tabs are `HOME / CHAT / RAG / DOCS` — `/settings` is reached via a gear icon, not a tab (see `constants/app.routes.ts`).
 
@@ -59,20 +59,20 @@ components/           # React components, barrel-exported from index.ts
   Loader/             # styled-components 3D cube spinner, shown while awaiting first token
   NavTabs.tsx         # Top navigation bar with route-aware active state
   Rag/                # RAG：上传、检索相似度、RAG Chat
-  Settings/           # 设置页：Ollama / DeepSeek + API Key + 模型
+  Settings/           # 设置页：主题色板 + Ollama / DeepSeek + API Key
 hooks/
   useStreamingChat/   # Shared streaming-chat hook (Chat + Rag both use it)
 lib/
   api/                # Client-side fetch wrapper (ApiClient class)
   server/             # Server-only: model factory, chat, rag, tools, response helpers
     tools/            # Agent tools（LangChain tool / function calling）
-  settings.ts         # 前端设置读写（localStorage）+ chatModelPayload()
+  settings.ts         # 前端设置读写（localStorage）+ applyColorPalette() + chatModelPayload()
 constants/
   api.routes.ts       # API route path constants
   app.routes.ts       # Page route constants, NavTab config, active-tab logic
 types/
   api.ts              # ApiResponse<T> interface
-  settings.ts         # AppSettings / LlmProvider / DeepSeekModel
+  settings.ts         # AppSettings / LlmProvider / DeepSeekModel / ColorPalette
 config.ts             # Ollama + DeepSeek model config — driven by env vars
 ```
 
@@ -80,7 +80,8 @@ config.ts             # Ollama + DeepSeek model config — driven by env vars
 
 - **Barrel exports**: `components/index.ts` and `lib/server/index.ts` re-export public APIs. Import from `@/components` or `@/lib/server`.
 - **Path aliases**: `@/*` maps to project root (configured in `tsconfig.json`).
-- **CSS utilities**: Component styles are defined as Tailwind v4 `@utility` classes in `app/globals.css` plus per-component `.css` files (`components/Chat/chat.css`, `components/Rag/rag.css`, `styles/*.css`, etc.). Do not use inline Tailwind classes directly — use the utility classes (e.g., `chat-panel`, `msg-bubble-ai`, `nav-glass`). Design tokens (colors/fonts, light/dark themes) live in `styles/tokens.css`, see `DESIGN.md`.
+- **CSS utilities**: Component styles are defined as Tailwind v4 `@utility` classes in `app/globals.css` plus per-component `.css` files (`components/Chat/chat.css`, `components/Rag/rag.css`, `styles/*.css`, etc.). Do not use inline Tailwind classes directly — use the utility classes (e.g., `chat-panel`, `msg-bubble-ai`, `nav-glass`). Design tokens live in `styles/tokens.css`（`data-theme` × `data-palette`），see `DESIGN.md`.
+- **Theme axes**: 顶栏切换 `data-theme`（`light`/`dark`，key `th-theme`）；设置页切换 `data-palette`（`editorial`/`mono`/`verdant`，存 `th-settings.colorPalette`）。根布局首屏脚本两者都写，避免闪色。色板选中即 `writeSettings`；Home Grainient 三色取自 `COLOR_PALETTE_META.swatches`。
 - **Client/Server separation**: Components using hooks, browser APIs, or WebGL are marked `"use client"`. Server-only code lives in `lib/server/` and must not be imported in client components.
 - **Shared streaming hook**: Both `Chat` and `Rag` get streaming, abort, and auto-scroll from `hooks/useStreamingChat/index.ts` — do not reimplement per-component streaming. `onResponse` reads headers (e.g. `X-Rag-Hits`) before the body stream is consumed. Abort semantics: `handleAbort` cancels the reader if the stream started, otherwise aborts the fetch.
 - **Streaming responses**: Chat API endpoints return `ReadableStream` with `text/plain` content type. The front-end reads via `response.body.getReader()` and incrementally updates UI. AbortController cancels both the fetch and the reader.
@@ -119,6 +120,6 @@ Messages are rendered via `markdown-it` with `html: false` (XSS prevention), `li
 ## Learning Reference
 
 - `ROADMAP.md` — 6-stage AI Agent learning plan (current code covers stages 1–2 plus early stage-3 tool-calling).
-- `CODE_WIKI.md` — deep dive on modules, functions, and data flows. Note: it predates the settings/DeepSeek/tools refactor in places; prefer reading the code for the current state.
+- `CODE_WIKI.md` — deep dive on modules, functions, and data flows（含 Settings 色板与 `data-palette`）。若与代码不一致，以代码为准。
 - `docs/RAG.md` — RAG implementation walkthrough.
-- `DESIGN.md` — design system (fonts, colors, light/dark themes).
+- `DESIGN.md` — design system (fonts, colors, light/dark × color palettes).

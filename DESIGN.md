@@ -4,12 +4,12 @@
 
 ## 设计基调
 
-页面采用「编辑型极简」风格：杂志排版的精致感与工具型产品的实用性交汇。核心手法是大量留白、克制用色、高品位字体搭配、精确的间距节奏。刻意回避三类常见陷阱：紫色渐变白底的 AI 套路配色、Inter/Roboto/Arial 等通用无衬线字体、千篇一律的卡片堆砌布局。单一赭红强调色贯穿全局，只出现在激活态、链接、进度、关键标点等少量高价值位置，让每一次着色都有分量。
+页面采用「编辑型极简」风格：杂志排版的精致感与工具型产品的实用性交汇。核心手法是大量留白、克制用色、高品位字体搭配、精确的间距节奏。刻意回避三类常见陷阱：紫色渐变白底的 AI 套路配色、Inter/Roboto/Arial 等通用无衬线字体、千篇一律的卡片堆砌布局。默认色板下单一赭红强调色贯穿全局；切换色板后强调色随之替换，但仍只出现在激活态、链接、进度、关键标点等少量高价值位置，让每一次着色都有分量。
 
 | 项 | 值 |
 | --- | --- |
 | 产品名 | **TH.AGENT**（短标 **TH**） |
-| 气质 | 编辑型极简；暖纸面 + 赭红点缀；衬线展示 / 几何正文 / 等宽元信息 |
+| 气质 | 编辑型极简；默认暖纸面 + 赭红点缀；可切换冷灰 / 墨玉黑绿；衬线展示 / 几何正文 / 等宽元信息 |
 | 首屏 | Home 以品牌大字为唯一视觉锚点，不做卡片墙 / 数据条 |
 
 ## 字体系统
@@ -22,7 +22,7 @@
 | Outfit | 正文 | 几何无衬线，字重 300–400，行高 1.6；导航、输入、气泡正文 |
 | JetBrains Mono | 等宽元信息 | 代码块、标签、时间戳、章节编号；字号 10–13px，配 `letter-spacing` 0.12–0.18em + `text-transform: uppercase` |
 
-Fraunces 标题通过 `font-variation-settings: 'opsz' 144, 'SOFT' 50` 获得大字号下更舒展的字形；斜体强调切换到 `'SOFT' 100`，配合赭红着色形成视觉焦点。Outfit 的几何无衬线与 Fraunces 的有机衬线形成理性与感性的对话；JetBrains Mono 的等宽 uppercase 标签在两者之间提供技术化的节奏停顿。
+Fraunces 标题通过 `font-variation-settings: 'opsz' 144, 'SOFT' 50` 获得大字号下更舒展的字形；斜体强调切换到 `'SOFT' 100`，配合 `--accent` 着色形成视觉焦点。Outfit 的几何无衬线与 Fraunces 的有机衬线形成理性与感性的对话；JetBrains Mono 的等宽 uppercase 标签在两者之间提供技术化的节奏停顿。
 
 | 角色（落地） | 字体 | 用法 |
 | --- | --- | --- |
@@ -33,9 +33,26 @@ Fraunces 标题通过 `font-variation-settings: 'opsz' 144, 'SOFT' 50` 获得大
 
 ## 色彩系统
 
-全站以 CSS 自定义属性驱动，支持浅 / 深双主题（可通过 `data-theme` 作用于根元素；`localStorage` 持久化）。主题切换时颜色变量整体替换，body 配约 0.35s 过渡实现平滑切换。
+全站以 CSS 自定义属性驱动，**两轴正交**：
 
-### 浅色主题
+| 轴 | 属性 | 取值 | 入口 | 持久化 |
+| --- | --- | --- | --- | --- |
+| 明暗 | `data-theme` | `light` \| `dark` | 顶栏日/月按钮 | `localStorage` key `th-theme` |
+| 色板 | `data-palette` | `editorial` \| `mono` \| `verdant` | `/settings` 主题色板 | `th-settings.colorPalette` |
+
+两轴组合替换同一套 token（`--bg` / `--accent` / `--ink` 等），body 配约 0.35s 过渡。首屏内联脚本同时写入 `data-theme` 与 `data-palette`，避免闪色。实现见 `styles/tokens.css`；元数据与 swatch 见 `types/settings.ts` 的 `COLOR_PALETTE_META`。
+
+### 色板一览
+
+| id | 名称 | 气质 | Grainient 三色（Home） |
+| --- | --- | --- | --- |
+| `editorial` | 暖纸赭红（默认） | 编辑型极简：暖米纸 + 赭红强调 | `#F6F3EC` / `#1C1814` / `#B0431B` |
+| `mono` | 冷灰单色 | 以白 / 中灰 / 近黑为主 | `#FFFFFF` / `#999999` / `#111111` |
+| `verdant` | 墨玉黑绿 | 高级黑绿色系：深墨底 + 苔绿强调 | `#0B1410` / `#1A3D32` / `#6FBF9A` |
+
+### 暖纸赭红（`editorial`）
+
+#### 浅色
 
 | 变量 | 值 | 用途 |
 |------|------|------|
@@ -45,7 +62,7 @@ Fraunces 标题通过 `font-variation-settings: 'opsz' 144, 'SOFT' 50` 获得大
 | `--accent` | `#B0431B` | 赭红强调色 |
 | `--accent-soft` | `rgba(176,67,27,.08)` | 强调色 8% 透明底 |
 
-### 深色主题
+#### 深色
 
 | 变量 | 值 | 用途 |
 |------|------|------|
@@ -55,22 +72,39 @@ Fraunces 标题通过 `font-variation-settings: 'opsz' 144, 'SOFT' 50` 获得大
 | `--accent` | `#E07A48` | 暖橙强调色 |
 | `--accent-soft` | `rgba(224,122,72,.10)` | 强调色 10% 透明底 |
 
+### 冷灰单色（`mono`）
+
+| Token | Light | Dark |
+| --- | --- | --- |
+| `--bg` | `#FFFFFF` | `#111111` |
+| `--surface` / `--surface-2` | `#F7F7F7` / `#EEEEEE` | `#1A1A1A` / `#242424` |
+| `--accent` | `#111111` | `#FFFFFF` |
+| `--ink` / `--secondary` | `#111111` / `#999999` | `#FFFFFF` / `#999999` |
+
+### 墨玉黑绿（`verdant`）
+
+| Token | Light | Dark |
+| --- | --- | --- |
+| `--bg` | `#EEF3F0` | `#0B1410` |
+| `--surface` / `--surface-2` | `#F6FAF7` / `#DEE8E2` | `#101C17` / `#162820` |
+| `--accent` | `#1A4D3E` | `#6FBF9A` |
+| `--ink` / `--secondary` | `#0B1410` / `#5A7368` | `#E8F2EC` / `#8AA89A` |
+
 ### 文字与边框层级
 
-文字分四级，从主到次逐级降低对比度：`--ink` 主文、`--ink-soft` 次文、`--secondary` 辅助、`--muted` 弱化。边框设三档：`--border` 常规分隔、`--border-strong` 卡片与输入框边界、`--accent-soft` 充当强调色底纹。深色主题下阴影从暖棕半透明改为纯黑半透明。文字选区（`::selection`）使用 accent-soft 底 + accent 文字。
+文字分四级，从主到次逐级降低对比度：`--ink` 主文、`--ink-soft` 次文、`--secondary` 辅助、`--muted` 弱化。边框设三档：`--border` 常规分隔、`--border-strong` 卡片与输入框边界、`--accent-soft` 充当强调色底纹。深色下阴影偏纯黑半透明。文字选区（`::selection`）为 accent 底 + `--on-accent` 字。
 
-| Token / 用法 | Light | Dark |
-| --- | --- | --- |
-| 页面底 | `--bg` `#F6F3EC` | `--bg` `#14110C` |
-| 前景主文 | `--ink` | `--ink` |
-| 顶栏毛玻璃 | `surface` 半透明 + blur | 同左，加深墨棕 |
-| 顶栏分割线 | `--border` | `--border` |
-| 主操作 / Human 气泡 | `--accent` 底 + 浅字，或 ink 高对比 | 同左 |
-| AI 气泡 | `--surface-2` + `--ink-soft` | 同左 |
-| 次要文案 | `--secondary` / `--muted` | 同左 |
-| 输入边框 | `--border` → hover `--border-strong` → focus `--accent` | 同左 |
+| Token / 用法 | 说明 |
+| --- | --- |
+| 页面底 | `--bg`（随色板 × 明暗变化） |
+| 前景主文 | `--ink` |
+| 顶栏毛玻璃 | `surface` 半透明 + blur |
+| 主操作 / Human 气泡 | `--accent` 底 + `--on-accent` |
+| AI 气泡 | `--surface-2` + `--ink-soft` |
+| 次要文案 | `--secondary` / `--muted` |
+| 输入边框 | `--border` → hover `--border-strong` → focus `--accent` |
 
-原则：强调色只出现在高价值交互点；交互态优先用明度与 accent 透明度，避免紫 / 青霓虹或渐变字。
+原则：强调色只出现在高价值交互点；交互态优先用明度与 accent 透明度，避免紫 / 青霓虹或渐变字。新 UI 只消费 CSS 变量，勿硬编码某一色板的 hex（Home Grainient 除外：WebGL 需显式三色，取自 `COLOR_PALETTE_META.swatches`）。
 
 ## 布局与空间
 
@@ -115,9 +149,13 @@ Hover 浮现 COPY；成功后短暂 copied 态（accent 实底 + 浅字）+ Toas
 
 顶部 2px accent 进度条；滚过约 600px 后右下角返回按钮浮现，hover 上浮并着强调色。
 
-### 主题切换
+### 明暗切换（`data-theme`）
 
-圆形按钮，hover 可轻微旋转；图标在日 / 月间切换；写入 `localStorage`，首屏读取避免闪烁。
+顶栏圆形按钮，hover 可轻微旋转；图标在日 / 月间切换；写入 `localStorage` key `th-theme`，首屏脚本读取避免闪烁。只切换明暗，不改色板。
+
+### 色板切换（`data-palette`）
+
+在 `/settings`「主题色板」三项单选；选中即 `writeSettings` 落盘并 `applyColorPalette` 写根节点。与顶栏明暗独立；Home Grainient 的 `color1/2/3` 随 `colorPalette` 同步。
 
 ### Chat / 输入
 
@@ -211,6 +249,14 @@ Hover 浮现 COPY；成功后短暂 copied 态（accent 实底 + 浅字）+ Toas
 | `msg-row` / `msg-row-end` / `msg-row-start` | 气泡行对齐 |
 | `msg-bubble` | 气泡 + Markdown 排版基础 |
 | `msg-bubble-human` / `msg-bubble-ai` | 角色色与圆角 |
+
+### Settings
+
+| Class | 用途 |
+| --- | --- |
+| `settings-panel` / `settings-form` | 设置页壳与表单 |
+| `settings-radio` | 单选卡片（色板 / 提供方共用） |
+| `settings-swatches` / `settings-swatch` | 色板三色预览点 |
 
 ## 使用约定
 

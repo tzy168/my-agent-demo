@@ -22,12 +22,13 @@
 
 本项目是一个**本地 AI 智能体演示应用**，通过 Next.js 全栈架构提供：
 
-- **Home 页**：品牌展示 + WebGL 动态渐变背景（Editorial Minimal 风格）。
-- **Chat 页**：基于 Ollama 本地大模型的流式对话，支持停止生成。
+- **Home 页**：品牌展示 + WebGL 动态渐变背景（色板驱动 Grainient 三色）。
+- **Chat 页**：流式对话（Ollama / DeepSeek），支持工具调用、联网搜索开关与停止生成。
 - **RAG 页**：完整的检索增强生成（Retrieval-Augmented Generation）流程，包括文档上传、文本切块、向量嵌入、余弦相似度检索、基于检索上下文的流式问答。
 - **Docs 页**：面向开发者的 RAG 技术栈说明文档。
+- **Settings 页**：主题色板（暖纸赭红 / 冷灰单色 / 墨玉黑绿）+ 模型提供方与 DeepSeek API Key（`localStorage`）。
 
-后端通过 LangChain 的 Ollama 集成实现与本地模型的交互，支持流式输出与请求中断。
+后端通过 LangChain 集成 Ollama（及可选 DeepSeek）实现交互，支持流式输出与请求中断。
 
 ### 1.3 技术栈详情
 
@@ -57,25 +58,24 @@
 │                                  │                                           │
 │  ┌────────────────────────────┐  │  ┌─────────────────────────────────────┐  │
 │  │        NavTabs             │  │  │  API Routes                         │  │
-│  │  (路由高亮 + 主题切换)        │  │  │  ├── /api/baseChat       基础聊天   │  │
+│  │  (路由高亮 + light/dark)    │  │  │  ├── /api/baseChat       基础聊天   │  │
 │  └─────────────┬──────────────┘  │  │  ├── /api/pipe           管道聊天   │  │
 │                │                 │  │  ├── /api/rag/upload     文档上传   │  │
 │  ┌─────────────┴──────────────┐  │  │  ├── /api/rag/search     相似度检索 │  │
 │  │      Page Routes           │  │  │  ├── /api/rag/chat       RAG 对话   │  │
-│  │  /        → Home           │  │  │  └── /api/rag/status     知识库状态 │  │
-│  │  /chat    → Chat           │  │  └─────────────┬──────────────────────┘  │
-│  │  /rag     → Rag            │  │                │                         │
-│  │  /docs    → Docs           │  │  ┌─────────────┴─────────────┐           │
-│  └─────────────┬──────────────┘  │  │       lib/server            │           │
-│                │                 │  │  ├─ chat.ts    模型调用层   │           │
-│  ┌─────────────┴──────────────┐  │  │  ├─ rag.ts     RAG 核心     │           │
-│  │       Components           │  │  │  ├─ response.ts 响应工具    │           │
-│  │  ├─ Grainient (WebGL)      │  │  │  └─ index.ts   统一导出     │           │
-│  │  ├─ Chat / MsgBlock        │  │  └─────────────┬─────────────┘           │
-│  │  ├─ Rag                    │  │                │                         │
-│  │  ├─ Home                   │  │  ┌─────────────┴─────────────┐           │
-│  │  └─ Docs                   │  │  │        config.ts          │           │
-│  └────────────────────────────┘  │  │     Ollama 模型配置         │           │
+│  │  /         → Home          │  │  │  └── /api/rag/status     知识库状态 │  │
+│  │  /chat     → Chat          │  │  └─────────────┬──────────────────────┘  │
+│  │  /rag      → Rag           │  │                │                         │
+│  │  /docs     → Docs           │  │  ┌─────────────┴─────────────┐           │
+│  │  /settings → Settings      │  │  │       lib/server            │           │
+│  └─────────────┬──────────────┘  │  │  ├─ chat.ts / model.ts     │           │
+│                │                 │  │  ├─ rag.ts / tools/        │           │
+│  ┌─────────────┴──────────────┐  │  │  └─ response.ts            │           │
+│  │       Components           │  │  └─────────────┬─────────────┘           │
+│  │  ├─ Grainient / Home       │  │                │                         │
+│  │  ├─ Chat / Rag / Docs      │  │  ┌─────────────┴─────────────┐           │
+│  │  └─ Settings（色板+模型）   │  │  │  config.ts + lib/settings │           │
+│  └────────────────────────────┘  │  │  模型 env + 前端 localStorage │         │
 │                                  │  └─────────────────────────────┘           │
 └──────────────────────────────────┴──────────────────────────────────────────┘
 ```
@@ -121,6 +121,7 @@ my-agent-demo/
 │   │   ├── chat/page.tsx             # /chat 页面
 │   │   ├── docs/page.tsx             # /docs 页面
 │   │   ├── rag/page.tsx              # /rag 页面
+│   │   ├── settings/page.tsx         # /settings 页面
 │   │   ├── layout.tsx                # 主布局（注入 NavTabs）
 │   │   └── page.tsx                  # / 首页
 │   ├── api/                          # API 路由
@@ -131,7 +132,7 @@ my-agent-demo/
 │   │       ├── search/route.ts       # 向量检索
 │   │       ├── chat/route.ts         # RAG 流式对话
 │   │       └── status/route.ts       # 知识库状态
-│   ├── layout.tsx                    # 根布局（字体 + 主题初始化脚本）
+│   ├── layout.tsx                    # 根布局（字体 + data-theme/data-palette 初始化）
 │   └── globals.css                   # 全局样式入口（Tailwind v4）
 │
 ├── components/                       # React 组件
@@ -146,14 +147,18 @@ my-agent-demo/
 │   │   └── index.tsx                 # WebGL 动态渐变背景
 │   ├── Home/
 │   │   ├── home.css                  # Home 样式工具类
-│   │   └── index.tsx                 # 首页品牌展示
+│   │   ├── CubeParticles.tsx         # GSAP 立方体粒子
+│   │   └── index.tsx                 # 首页品牌展示（Grainient 随色板变色）
 │   ├── Rag/
 │   │   ├── rag.css                   # RAG 样式工具类
 │   │   └── index.tsx                 # RAG 上传 / 检索 / 对话 UI
-│   ├── NavTabs.tsx                   # 顶部导航 + 主题切换
+│   ├── Settings/
+│   │   ├── settings.css              # Settings 样式工具类
+│   │   └── index.tsx                 # 色板 + 模型提供方设置
+│   ├── NavTabs.tsx                   # 顶部导航 + light/dark 切换
 │   ├── nav.css                       # 导航样式工具类
 │   ├── ui/.gitkeep                   # 预留 UI 组件目录
-│   └── index.ts                      # 组件 barrel export（导出 NavTabs、Docs）
+│   └── index.ts                      # 组件 barrel export
 │
 ├── constants/                        # 常量定义
 │   ├── api.routes.ts                 # API 路径常量
@@ -163,6 +168,7 @@ my-agent-demo/
 │   ├── api/
 │   │   ├── client.ts                 # 浏览器端 fetch 封装
 │   │   └── index.ts                  # 统一导出
+│   ├── settings.ts                   # 前端设置（localStorage）+ applyColorPalette
 │   └── server/
 │       ├── chat.ts                   # LangChain 聊天逻辑
 │       ├── rag.ts                    # RAG 核心逻辑
@@ -170,12 +176,13 @@ my-agent-demo/
 │       └── index.ts                  # 统一导出
 │
 ├── styles/                           # 跨模块样式
-│   ├── tokens.css                    # 设计 token（颜色 / 字体）
+│   ├── tokens.css                    # 设计 token（data-theme × data-palette）
 │   ├── shared.css                    # 共享工具类
 │   └── layout.css                    # 布局工具类
 │
 ├── types/                            # TypeScript 类型定义
 │   ├── api.ts                        # API 通用类型
+│   ├── settings.ts                   # AppSettings / ColorPalette / LlmProvider
 │   └── index.ts                      # 统一导出
 │
 ├── docs/                             # 业务文档
@@ -203,19 +210,22 @@ my-agent-demo/
 
 | 模块 | 职责 | 技术要点 |
 |------|------|----------|
-| `app/layout.tsx` | 根布局 | 加载 Google Fonts（Fraunces / Outfit / JetBrains Mono）、注入主题初始化脚本、设置 `data-theme` |
+| `app/layout.tsx` | 根布局 | 加载 Google Fonts、注入首屏脚本设置 `data-theme` + `data-palette` |
 | `app/(main)/layout.tsx` | 主布局壳 | 用 `NavTabs` 包裹所有业务页面 |
 | `app/(main)/page.tsx` | 首页路由 | 渲染 `Home` 组件 |
 | `app/(main)/chat/page.tsx` | 聊天页路由 | 渲染 `Chat` 组件，占满顶栏下方空间 |
 | `app/(main)/rag/page.tsx` | RAG 页路由 | 渲染 `Rag` 组件，双栏布局 |
 | `app/(main)/docs/page.tsx` | 文档页路由 | 渲染 `Docs` 组件 |
-| `components/NavTabs.tsx` | 顶部毛玻璃导航栏 | `usePathname` 高亮当前 Tab、localStorage 主题持久化 |
-| `components/Home/index.tsx` | 品牌展示区 | 集成 `Grainient` WebGL 背景、品牌大字 |
-| `components/Chat/index.tsx` | 聊天交互面板 | 流式读取、AbortController 中断、自动滚动、停止生成 |
+| `app/(main)/settings/page.tsx` | 设置页路由 | 渲染 `Settings` 组件 |
+| `components/NavTabs.tsx` | 顶部毛玻璃导航栏 | `usePathname` 高亮 Tab、`th-theme` 明暗切换、齿轮进 Settings |
+| `components/Home/index.tsx` | 品牌展示区 | `Grainient` + CubeParticles；三色随 `colorPalette` |
+| `components/Chat/index.tsx` | 聊天交互面板 | 流式读取、AbortController、联网搜索、DeepSeek 模型选择 |
 | `components/Chat/MsgBlock/index.tsx` | 单条消息气泡 | `markdown-it` 渲染，XSS 防护（`html: false`） |
 | `components/Rag/index.tsx` | RAG 交互面板 | 文件上传、相似度检索、RAG Chat、检索命中展示 |
 | `components/Docs/index.tsx` | 静态文档页 | 面向开发者的 RAG 实现指南 |
+| `components/Settings/index.tsx` | 设置面板 | 色板即时切换 + Ollama/DeepSeek + API Key |
 | `components/Grainient/index.tsx` | WebGL 动态渐变背景 | `ogl` 库，GLSL shader，IntersectionObserver / visibilitychange 性能优化 |
+| `lib/settings.ts` | 前端设置 | `readSettings` / `writeSettings` / `applyColorPalette` / `chatModelPayload` |
 | `lib/api/client.ts` | 浏览器端请求封装 | 统一 `ApiResponse` 结构处理（RAG/status 等 JSON 接口使用） |
 
 ### 3.2 后端模块 (`app/api/` + `lib/server/`)
@@ -238,7 +248,7 @@ my-agent-demo/
 | 文件 | 职责 |
 |------|------|
 | `app/globals.css` | 全局样式入口：`@import "tailwindcss"`、导入各模块 CSS、设置 `body` / `::selection` / 减少动效媒体查询 |
-| `styles/tokens.css` | 设计 token：浅色 / 深色主题 CSS 变量、字体、缓动函数 |
+| `styles/tokens.css` | 设计 token：`data-theme`（light/dark）× `data-palette`（editorial/mono/verdant）CSS 变量、字体、缓动 |
 | `styles/layout.css` | 布局工具类：`app-shell`、`page-stack`、`page-content`、`page-fill`、`page-center`、`page-bleed` |
 | `styles/shared.css` | 跨模块共享工具：`scrollbar-none`、`sr-only` |
 | `components/nav.css` | 导航栏工具类：`nav-glass`、`nav-tab`、`nav-theme` 等 |
@@ -246,6 +256,7 @@ my-agent-demo/
 | `components/Chat/chat.css` | 聊天工具类：`chat-panel`、`msg-bubble-*`、`chat-input` 等 |
 | `components/Rag/rag.css` | RAG 工具类：`rag-grid`、`rag-side`、`rag-hit`、`rag-cite` 等 |
 | `components/Docs/docs.css` | 文档页工具类：`docs-scroll`、`docs-title`、`docs-pre` 等 |
+| `components/Settings/settings.css` | 设置页工具类：`settings-panel`、`settings-swatch` 等 |
 
 ---
 
@@ -519,8 +530,24 @@ RAG 交互面板，**Client Component**。分为左右两栏：
 
 - 使用 `usePathname()` 判断当前路由。
 - 毛玻璃效果：`backdrop-blur` + 半透明背景。
-- 主题切换：圆形按钮，写入 `localStorage`，首屏脚本避免闪烁。
-- Tab：`HOME` / `CHAT` / `RAG` / `DOCS`。
+- **明暗切换**（`data-theme`）：圆形日/月按钮，写入 `localStorage` key `th-theme`；与色板正交。
+- Tab：`HOME` / `CHAT` / `RAG` / `DOCS`；齿轮图标进入 `/settings`（非 Tab）。
+
+#### `Settings` (`components/Settings/index.tsx`)
+
+设置面板，**Client Component**。读写 `lib/settings.ts`（key `th-settings`）。
+
+| 区块 | 行为 |
+|------|------|
+| 主题色板 | `editorial` / `mono` / `verdant`；选中即 `writeSettings` + `applyColorPalette`（写 `data-palette`） |
+| 模型提供方 | Ollama / DeepSeek；DeepSeek 需 API Key，点「保存设置」落盘 |
+| DeepSeek 模型 | Chat 页工具栏另存 `deepseekModel`；设置页保存时保留该字段 |
+
+色板元数据（文案、三色 swatch）集中在 `types/settings.ts` 的 `COLOR_PALETTE_META`，供设置页色点与 Home Grainient 共用。
+
+#### `Home` (`components/Home/index.tsx`)
+
+首页品牌舞台：`Grainient` 全屏底 + `CubeParticles` + 品牌大字。监听 `SETTINGS_EVENT`，用当前 `colorPalette` 的 `swatches` 作为 Grainient `color1/2/3`。
 
 #### `Grainient` (`components/Grainient/index.tsx`)
 
@@ -790,13 +817,14 @@ OLLAMA_TEMPERATURE=0.3
 
 ### 7.3 多模型切换
 
-- 在 `config.ts` 中扩展多模型配置数组。
-- 前端增加模型选择器，通过 API 参数动态切换 `ChatOllama` 实例。
+- 设置页已支持 Ollama / DeepSeek；Chat 页可切换 DeepSeek Flash / Pro。
+- 继续扩展时优先走 `createChatModel()` / `parseModelOptions()`，避免在 API 路由内新建模型实例。
 
 ### 7.4 主题与设计系统
 
-- 设计系统详见 `DESIGN.md`。
-- 新增 UI 优先复用 `styles/` 与组件 CSS 中已有的 `@utility` 类名。
+- **两轴**：`data-theme`（顶栏 light/dark）× `data-palette`（设置页 editorial/mono/verdant）。
+- Token 定义在 `styles/tokens.css`；色板文案 / Grainient 三色在 `COLOR_PALETTE_META`。
+- 设计系统详见 `DESIGN.md`。新增 UI 只消费 CSS 变量与已有 `@utility`，勿硬编码某一色板 hex。
 
 ---
 
@@ -811,7 +839,8 @@ OLLAMA_TEMPERATURE=0.3
 | `app/(main)/chat/page.tsx` | Chat 页面 |
 | `app/(main)/rag/page.tsx` | RAG 页面 |
 | `app/(main)/docs/page.tsx` | Docs 页面 |
-| `app/layout.tsx` | 根布局与主题脚本 |
+| `app/(main)/settings/page.tsx` | Settings 页面 |
+| `app/layout.tsx` | 根布局与 `data-theme` / `data-palette` 首屏脚本 |
 | `app/globals.css` | 全局样式入口 |
 | `app/api/baseChat/route.ts` | 基础聊天 API |
 | `app/api/pipe/route.ts` | 管道聊天 API |
@@ -819,14 +848,16 @@ OLLAMA_TEMPERATURE=0.3
 | `app/api/rag/search/route.ts` | RAG 检索 API |
 | `app/api/rag/chat/route.ts` | RAG 对话 API |
 | `app/api/rag/status/route.ts` | RAG 状态 API |
-| `components/NavTabs.tsx` | 顶部导航 |
-| `components/Home/index.tsx` | 首页 |
+| `components/NavTabs.tsx` | 顶部导航 + light/dark |
+| `components/Home/index.tsx` | 首页（Grainient 随色板） |
 | `components/Chat/index.tsx` | 聊天面板 |
 | `components/Chat/MsgBlock/index.tsx` | 消息气泡 |
 | `components/Rag/index.tsx` | RAG 面板 |
 | `components/Docs/index.tsx` | 文档页 |
+| `components/Settings/index.tsx` | 设置（色板 + 模型） |
 | `components/Grainient/index.tsx` | WebGL 背景 |
-| `components/index.ts` | 组件 barrel export（导出 NavTabs、Docs） |
+| `components/index.ts` | 组件 barrel export |
+| `lib/settings.ts` | 前端设置 + `applyColorPalette` |
 | `lib/server/chat.ts` | 聊天逻辑 |
 | `lib/server/rag.ts` | RAG 逻辑 |
 | `lib/server/response.ts` | 响应工具 |
@@ -836,8 +867,9 @@ OLLAMA_TEMPERATURE=0.3
 | `constants/api.routes.ts` | API 路径常量 |
 | `constants/app.routes.ts` | 页面路由常量 |
 | `types/api.ts` | API 通用类型 |
+| `types/settings.ts` | `AppSettings` / `ColorPalette` / `COLOR_PALETTE_META` |
 | `types/index.ts` | 类型 barrel export |
-| `styles/tokens.css` | 设计 token |
+| `styles/tokens.css` | 设计 token（明暗 × 色板） |
 | `styles/shared.css` | 共享工具类 |
 | `styles/layout.css` | 布局工具类 |
 | `components/nav.css` | 导航样式 |
@@ -845,7 +877,8 @@ OLLAMA_TEMPERATURE=0.3
 | `components/Chat/chat.css` | 聊天样式 |
 | `components/Rag/rag.css` | RAG 样式 |
 | `components/Docs/docs.css` | 文档样式 |
-| `config.ts` | Ollama 配置 |
+| `components/Settings/settings.css` | 设置页样式 |
+| `config.ts` | Ollama / DeepSeek 配置 |
 | `next.config.ts` | Next.js 配置 |
 | `tsconfig.json` | TypeScript 配置 |
 | `package.json` | 依赖与脚本 |
@@ -882,7 +915,7 @@ OLLAMA_TEMPERATURE=0.3
 | `README.md` | 项目入口与启动说明 |
 | `AGENTS.md` | AI Agent 协作规范 |
 | `CLAUDE.md` | Claude Code 工作规范 |
-| `DESIGN.md` | 设计系统（Editorial Minimal） |
+| `DESIGN.md` | 设计系统（Editorial Minimal；light/dark × 三色板） |
 | `docs/RAG.md` | RAG 从 0 到 1 步骤说明 |
 
 ---
