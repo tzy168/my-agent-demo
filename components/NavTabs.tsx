@@ -48,6 +48,13 @@ export function NavTabs({ children }: NavTabsProps) {
     };
   }, []);
 
+  // DeepSeek 无本地嵌入：藏 Tab 后若仍停在 /rag，挪到 DOCS
+  useEffect(() => {
+    if (provider === "deepseek" && isNavTabActive(pathname, APP_ROUTES.RAG)) {
+      router.replace(APP_ROUTES.DOCS);
+    }
+  }, [provider, pathname, router]);
+
   const toggleTheme = () => {
     const next: Theme = theme === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);

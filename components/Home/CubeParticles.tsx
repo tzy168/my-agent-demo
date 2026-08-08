@@ -27,7 +27,7 @@ export type CubeParticlesHandle = {
 
 type Props = {
   className?: string;
-  /** DeepSeek 模式下立方体背面不标 RAG */
+  /** DeepSeek：面文字改为无 RAG 的连续序（背 DOCS / 顶 SET） */
   hideRag?: boolean;
 };
 
@@ -43,8 +43,11 @@ const TEXT_RES = 160;
  * 文案对齐原 DOM：TH / RAG / SET / AI / DOCS / CHAT
  */
 const FACE_LABELS = ["TH", "RAG", "SET", "AI", "DOCS", "CHAT"] as const;
-/** DeepSeek：背面改 LLM，首页不出现 RAG 文案 */
-const FACE_LABELS_NO_RAG = ["TH", "LLM", "SET", "AI", "DOCS", "CHAT"] as const;
+/**
+ * DeepSeek：无 RAG 步。背=DOCS、顶=SET，配合 Home 连续 pose
+ * （CHAT→DOCS→SETTINGS 各转 90°，不再路过原 RAG 面）
+ */
+const FACE_LABELS_NO_RAG = ["TH", "DOCS", "SET", "AI", "SET", "CHAT"] as const;
 
 const FACE_COLORS: [number, number, number][] = [
   [196 / 255, 90 / 255, 42 / 255],

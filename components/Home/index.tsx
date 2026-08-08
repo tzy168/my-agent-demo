@@ -16,13 +16,24 @@ import type { LlmProvider } from "@/types/settings";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, Observer);
 
-/** 与立方体翻面顺序对应；DeepSeek 时去掉 RAG */
+/** 与立方体翻面顺序对应（含 RAG） */
 const HOME_ITEMS = [
   { label: "TH.AGENT", href: APP_ROUTES.HOME, poseIdx: 0 },
   { label: "CHAT", href: APP_ROUTES.CHAT, poseIdx: 1 },
   { label: "RAG", href: APP_ROUTES.RAG, poseIdx: 2 },
   { label: "DOCS", href: APP_ROUTES.DOCS, poseIdx: 3 },
   { label: "SETTINGS", href: APP_ROUTES.SETTINGS, poseIdx: 4 },
+] as const;
+
+/**
+ * DeepSeek：去掉 RAG，pose 连续 90°——CHAT 下一面直接是 DOCS（原背），
+ * 再 SETTINGS（原顶）。勿复用 Ollama 的 poseIdx，否则 CHAT→DOCS 会转 180°路过 RAG。
+ */
+const HOME_ITEMS_DEEPSEEK = [
+  { label: "TH.AGENT", href: APP_ROUTES.HOME, poseIdx: 0 },
+  { label: "CHAT", href: APP_ROUTES.CHAT, poseIdx: 1 },
+  { label: "DOCS", href: APP_ROUTES.DOCS, poseIdx: 2 },
+  { label: "SETTINGS", href: APP_ROUTES.SETTINGS, poseIdx: 3 },
 ] as const;
 
 /** 始终保持的斜视倾角：对应面最突出，但不正对镜头 */
@@ -49,14 +60,11 @@ const Home = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const particlesRef = useRef<CubeParticlesHandle>(null);
   const [provider, setProvider] = useState<LlmProvider>("ollama");
-  // DeepSeek 模式首页不展示 RAG 入口
-  const items =
-    provider === "deepseek"
-      ? HOME_ITEMS.filter((i) => i.label !== "RAG")
-      : HOME_ITEMS;
-  const [active, setActive] = useState<(typeof HOME_ITEMS)[number]["label"]>(
-    "TH.AGENT",
-  );
+  // DeepSeek：无 RAG，且 pose 连续，CHAT 下一跳即 DOCS
+  const items = provider === "deepseek" ? HOME_ITEMS_DEEPSEEK : HOME_ITEMS;
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+  const [active, setActive] = useState<string>("TH.AGENT");
   const activeRef = useRef(0);
   const lockedRef = useRef(false);
   const modeRef = useRef<CubeMode>("solid");
@@ -79,7 +87,7 @@ const Home = () => {
     activeRef.current = 0;
     setActive(items[0]?.label ?? "TH.AGENT");
     particlesRef.current?.setPose(CUBE_POSES[items[0]?.poseIdx ?? 0]);
-  }, [provider]);
+  }, [provider, items]);
 
   useGSAP(
     (_ctx, contextSafe) => {
@@ -87,8 +95,11 @@ const Home = () => {
         "(prefers-reduced-motion: reduce)",
       ).matches;
 
+      // 始终读 itemsRef，避免 provider 切换后旧 Observer 闭包仍指向含 RAG 的列表
+      const list = () => itemsRef.current;
+
       // 初始对准当前第一项（WebGL 未就绪时会进 pendingPose）
-      particlesRef.current?.setPose(CUBE_POSES[items[0]?.poseIdx ?? 0]);
+      particlesRef.current?.setPose(CUBE_POSES[list()[0]?.poseIdx ?? 0]);
       activeRef.current = 0;
 
       const clearIdle = () => {
@@ -129,7 +140,7 @@ const Home = () => {
         modeRef.current = "assembling";
         await particles.assemble();
         // 聚回当前 active 姿态（散开期间未翻面）
-        const poseIdx = items[activeRef.current]?.poseIdx ?? 0;
+        const poseIdx = list()[activeRef.current]?.poseIdx ?? 0;
         particles.setPose(CUBE_POSES[poseIdx]);
         modeRef.current = "solid";
         armIdle();
@@ -146,6 +157,7 @@ const Home = () => {
 
       const step = (next: number) => {
         if (lockedRef.current) return;
+        const items = list();
         const clamped = Math.max(0, Math.min(items.length - 1, next));
         if (clamped === activeRef.current) return;
         const particles = particlesRef.current;
@@ -176,6 +188,7 @@ const Home = () => {
             void assembleSafe();
             return;
           }
+          const items = list();
           const next =
             activeRef.current === items.length - 1
               ? 0
@@ -187,6 +200,7 @@ const Home = () => {
             void assembleSafe();
             return;
           }
+          const items = list();
           const next =
             activeRef.current === 0
               ? items.length - 1
@@ -202,7 +216,8 @@ const Home = () => {
         obs.kill();
       };
     },
-    { scope: rootRef, dependencies: [provider] },
+    // revertOnUpdate：provider 变时清掉旧 Observer；默认 deferCleanup 会叠两个监听
+    { scope: rootRef, dependencies: [provider], revertOnUpdate: true },
   );
 
   return (
