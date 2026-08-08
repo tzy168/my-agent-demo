@@ -68,6 +68,19 @@
   @apply mt-0.5 block text-xs text-muted;
 }
 
+@utility settings-palette-body {
+  @apply flex min-w-0 flex-1 items-start gap-3;
+}
+
+@utility settings-swatches {
+  @apply mt-0.5 flex shrink-0 gap-1;
+}
+
+@utility settings-swatch {
+  @apply block size-4 rounded-full border;
+  border-color: var(--border-strong);
+}
+
 @utility settings-field {
   @apply flex flex-col gap-1.5;
 }

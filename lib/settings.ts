@@ -1,7 +1,9 @@
 import {
+  COLOR_PALETTES,
   DEFAULT_SETTINGS,
   DEEPSEEK_MODELS,
   type AppSettings,
+  type ColorPalette,
   type DeepSeekModel,
   type LlmProvider,
 } from "@/types/settings";
@@ -19,6 +21,19 @@ function isDeepSeekModel(value: unknown): value is DeepSeekModel {
     typeof value === "string" &&
     (DEEPSEEK_MODELS as readonly string[]).includes(value)
   );
+}
+
+function isColorPalette(value: unknown): value is ColorPalette {
+  return (
+    typeof value === "string" &&
+    (COLOR_PALETTES as readonly string[]).includes(value)
+  );
+}
+
+/** 把色板写到 <html data-palette>，供 tokens.css 切换 */
+export function applyColorPalette(palette: ColorPalette): void {
+  if (typeof document === "undefined") return;
+  document.documentElement.setAttribute("data-palette", palette);
 }
 
 /** 读取本地设置；SSR / 不可用时返回默认值 */
@@ -39,6 +54,9 @@ export function readSettings(): AppSettings {
       deepseekModel: isDeepSeekModel(parsed.deepseekModel)
         ? parsed.deepseekModel
         : DEFAULT_SETTINGS.deepseekModel,
+      colorPalette: isColorPalette(parsed.colorPalette)
+        ? parsed.colorPalette
+        : DEFAULT_SETTINGS.colorPalette,
     };
   } catch {
     return { ...DEFAULT_SETTINGS };
@@ -48,6 +66,7 @@ export function readSettings(): AppSettings {
 /** 写入本地设置，并通知同页订阅者 */
 export function writeSettings(settings: AppSettings): void {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  applyColorPalette(settings.colorPalette);
   window.dispatchEvent(new Event(SETTINGS_EVENT));
 }
 

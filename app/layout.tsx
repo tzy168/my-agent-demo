@@ -25,8 +25,8 @@ export const metadata: Metadata = {
   description: "Editorial minimal agent demo",
 };
 
-/** 首屏前读取主题，避免 data-theme 闪烁 */
-const themeInitScript = `(function(){try{var k='th-theme';var t=localStorage.getItem(k);if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();`;
+/** 首屏前读取 light/dark + 色板，避免 data-theme / data-palette 闪烁 */
+const themeInitScript = `(function(){try{var d=document.documentElement;var t=localStorage.getItem('th-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}d.setAttribute('data-theme',t);var p='editorial';try{var s=JSON.parse(localStorage.getItem('th-settings')||'{}');if(s.colorPalette==='mono'||s.colorPalette==='verdant'||s.colorPalette==='editorial')p=s.colorPalette;}catch(e2){}d.setAttribute('data-palette',p);}catch(e){document.documentElement.setAttribute('data-theme','light');document.documentElement.setAttribute('data-palette','editorial');}})();`;
 
 export default function RootLayout({
   children,

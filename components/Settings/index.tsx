@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
-import { readSettings, writeSettings } from "@/lib/settings";
-import type { AppSettings, LlmProvider } from "@/types/settings";
+import { applyColorPalette, readSettings, writeSettings } from "@/lib/settings";
+import {
+  COLOR_PALETTE_META,
+  COLOR_PALETTES,
+  type AppSettings,
+  type ColorPalette,
+  type LlmProvider,
+} from "@/types/settings";
 
-/** /settings：模型提供方 + DeepSeek API Key */
+/** /settings：色板 + 模型提供方 + DeepSeek API Key */
 export function Settings() {
   const formId = useId();
   const providerOllamaId = `${formId}-ollama`;
@@ -13,6 +19,7 @@ export function Settings() {
 
   const [provider, setProvider] = useState<LlmProvider>("ollama");
   const [deepseekApiKey, setDeepseekApiKey] = useState("");
+  const [colorPalette, setColorPalette] = useState<ColorPalette>("editorial");
   const [showKey, setShowKey] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -20,7 +27,15 @@ export function Settings() {
     const s = readSettings();
     setProvider(s.provider);
     setDeepseekApiKey(s.deepseekApiKey);
+    setColorPalette(s.colorPalette);
+    applyColorPalette(s.colorPalette);
   }, []);
+
+  const handlePaletteChange = (next: ColorPalette) => {
+    setColorPalette(next);
+    // 色板即时生效并落盘（与顶栏 light/dark 一致），勿等「保存设置」
+    writeSettings({ ...readSettings(), colorPalette: next });
+  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,6 +45,7 @@ export function Settings() {
       provider,
       deepseekApiKey: deepseekApiKey.trim(),
       deepseekModel: prev.deepseekModel,
+      colorPalette,
     };
     // DeepSeek 必须有 Key，否则保存时提示原生校验
     if (provider === "deepseek" && !next.deepseekApiKey) {
@@ -48,11 +64,51 @@ export function Settings() {
       <header className="settings-header">
         <h1 className="settings-title">设置</h1>
         <p className="settings-desc">
-          选择聊天模型提供方。DeepSeek 走官方 API；Ollama 继续用本地模型。
+          选择主题色板与聊天模型提供方。DeepSeek 走官方 API；Ollama 继续用本地模型。
         </p>
       </header>
 
       <form className="settings-form" onSubmit={handleSubmit} method="post">
+        <fieldset className="settings-fieldset">
+          <legend className="settings-legend">主题色板</legend>
+          <div className="settings-radios">
+            {COLOR_PALETTES.map((id) => {
+              const meta = COLOR_PALETTE_META[id];
+              const inputId = `${formId}-palette-${id}`;
+              return (
+                <label className="settings-radio" htmlFor={inputId} key={id}>
+                  <input
+                    id={inputId}
+                    type="radio"
+                    name="colorPalette"
+                    value={id}
+                    checked={colorPalette === id}
+                    onChange={() => handlePaletteChange(id)}
+                  />
+                  <span className="settings-palette-body">
+                    <span
+                      className="settings-swatches"
+                      aria-hidden="true"
+                    >
+                      {meta.swatches.map((hex) => (
+                        <span
+                          key={hex}
+                          className="settings-swatch"
+                          style={{ background: hex }}
+                        />
+                      ))}
+                    </span>
+                    <span>
+                      <span className="settings-radio-label">{meta.label}</span>
+                      <span className="settings-radio-hint">{meta.hint}</span>
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+
         <fieldset className="settings-fieldset">
           <legend className="settings-legend">模型提供方</legend>
           <div className="settings-radios">

@@ -1,7 +1,11 @@
-/* 全站色系 / 字体 token —— 各模块样式共用，勿在模块内另起色板 */
+/* 全站色系 / 字体 token —— 各模块样式共用，勿在模块内另起色板
+ * data-theme: light | dark（顶栏切换）
+ * data-palette: editorial | mono | verdant（设置页色板）
+ */
 
 :root,
-[data-theme="light"] {
+[data-theme="light"],
+[data-palette="editorial"][data-theme="light"] {
   color-scheme: light;
   --bg: #f6f3ec;
   --surface: #fefcf6;
@@ -19,7 +23,8 @@
   --on-accent: #fefcf6;
 }
 
-[data-theme="dark"] {
+[data-theme="dark"],
+[data-palette="editorial"][data-theme="dark"] {
   color-scheme: dark;
   --bg: #14110c;
   --surface: #1d1913;
@@ -35,6 +40,80 @@
   --shadow: rgba(0, 0, 0, 0.45);
   --code-bg: #252017;
   --on-accent: #14110c;
+}
+
+/* 冷灰单色：#FFFFFF / #999999 / #111111 */
+[data-palette="mono"][data-theme="light"] {
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #f7f7f7;
+  --surface-2: #eeeeee;
+  --accent: #111111;
+  --accent-soft: rgba(17, 17, 17, 0.08);
+  --ink: #111111;
+  --ink-soft: #333333;
+  --secondary: #999999;
+  --muted: #999999;
+  --border: rgba(17, 17, 17, 0.12);
+  --border-strong: rgba(17, 17, 17, 0.28);
+  --shadow: rgba(17, 17, 17, 0.08);
+  --code-bg: #eeeeee;
+  --on-accent: #ffffff;
+}
+
+[data-palette="mono"][data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111111;
+  --surface: #1a1a1a;
+  --surface-2: #242424;
+  --accent: #ffffff;
+  --accent-soft: rgba(255, 255, 255, 0.1);
+  --ink: #ffffff;
+  --ink-soft: #e0e0e0;
+  --secondary: #999999;
+  --muted: #777777;
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.28);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --code-bg: #242424;
+  --on-accent: #111111;
+}
+
+/* 墨玉黑绿：高级黑绿色系 */
+[data-palette="verdant"][data-theme="light"] {
+  color-scheme: light;
+  --bg: #eef3f0;
+  --surface: #f6faf7;
+  --surface-2: #dee8e2;
+  --accent: #1a4d3e;
+  --accent-soft: rgba(26, 77, 62, 0.1);
+  --ink: #0b1410;
+  --ink-soft: #1a2e26;
+  --secondary: #5a7368;
+  --muted: #849990;
+  --border: rgba(11, 20, 16, 0.12);
+  --border-strong: rgba(11, 20, 16, 0.28);
+  --shadow: rgba(20, 50, 40, 0.1);
+  --code-bg: #dee8e2;
+  --on-accent: #f6faf7;
+}
+
+[data-palette="verdant"][data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1410;
+  --surface: #101c17;
+  --surface-2: #162820;
+  --accent: #6fbf9a;
+  --accent-soft: rgba(111, 191, 154, 0.12);
+  --ink: #e8f2ec;
+  --ink-soft: #c5d9ce;
+  --secondary: #8aa89a;
+  --muted: #5f7a6e;
+  --border: rgba(232, 242, 236, 0.1);
+  --border-strong: rgba(232, 242, 236, 0.24);
+  --shadow: rgba(0, 0, 0, 0.5);
+  --code-bg: #162820;
+  --on-accent: #0b1410;
 }
 
 @theme inline {

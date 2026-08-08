@@ -12,7 +12,11 @@ import CubeParticles, {
 } from "./CubeParticles";
 import { APP_ROUTES } from "@/constants/app.routes";
 import { SETTINGS_EVENT, readSettings } from "@/lib/settings";
-import type { LlmProvider } from "@/types/settings";
+import {
+  COLOR_PALETTE_META,
+  type ColorPalette,
+  type LlmProvider,
+} from "@/types/settings";
 
 gsap.registerPlugin(useGSAP, ScrollTrigger, Observer);
 
@@ -60,6 +64,8 @@ const Home = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const particlesRef = useRef<CubeParticlesHandle>(null);
   const [provider, setProvider] = useState<LlmProvider>("ollama");
+  const [colorPalette, setColorPalette] =
+    useState<ColorPalette>("editorial");
   // DeepSeek：无 RAG，且 pose 连续，CHAT 下一跳即 DOCS
   const items = provider === "deepseek" ? HOME_ITEMS_DEEPSEEK : HOME_ITEMS;
   const itemsRef = useRef(items);
@@ -70,9 +76,14 @@ const Home = () => {
   const modeRef = useRef<CubeMode>("solid");
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
+  const grain = COLOR_PALETTE_META[colorPalette].swatches;
 
   useEffect(() => {
-    const sync = () => setProvider(readSettings().provider);
+    const sync = () => {
+      const s = readSettings();
+      setProvider(s.provider);
+      setColorPalette(s.colorPalette);
+    };
     sync();
     window.addEventListener(SETTINGS_EVENT, sync);
     window.addEventListener("storage", sync);
@@ -231,9 +242,9 @@ const Home = () => {
     >
       <div className="pointer-events-none absolute inset-0" aria-hidden="true">
         <Grainient
-          color1="#F6F3EC"
-          color2="#1C1814"
-          color3="#B0431B"
+          color1={grain[0]}
+          color2={grain[1]}
+          color3={grain[2]}
           timeSpeed={0.25}
           colorBalance={0}
           warpStrength={1}
