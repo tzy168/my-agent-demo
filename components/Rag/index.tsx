@@ -45,7 +45,13 @@ const Rag = () => {
     handleSubmit: handleChat,
   } = useStreamingChat<ChatMessage>({
     apiRoute: API_ROUTES.RAG_CHAT,
-    buildBody: (text) => ({ msg: text, ...chatModelPayload() }),
+    buildBody: (text, priorMessages) => ({
+      msg: text,
+      history: priorMessages
+        .filter((m) => m.content.trim())
+        .map(({ role, content }) => ({ role, content })),
+      ...chatModelPayload(),
+    }),
     onResponse: (response, { updateMessage }) => {
       // 从响应头解析本次检索命中（含相似度）
       const hitsHeader = response.headers.get("X-Rag-Hits");

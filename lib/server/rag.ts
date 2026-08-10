@@ -1,7 +1,9 @@
 import { OllamaEmbeddings } from "@langchain/ollama";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 import { modelConfig } from "@/config";
+import type { ChatHistoryItem } from "@/types/chat";
 import { createChatModel, type ChatModelOptions } from "./model";
+import { toLangChainHistory } from "./messages";
 
 /** 内存中的一条文本块 + 向量（demo 用，进程重启即清空） */
 type StoredChunk = {
@@ -178,7 +180,9 @@ export async function streamRagChat(
   msg: string,
   signal?: AbortSignal,
   modelOptions?: ChatModelOptions,
+  history: ChatHistoryItem[] = [],
 ) {
+  // 检索仍只用本轮 msg；生成侧带上对话历史以支持追问
   const hits = await searchRag(msg, 4);
   const context = hits
     .map(
@@ -195,6 +199,7 @@ ${context}`;
   const chatModel = createChatModel(modelOptions);
   const stream = await chatModel.stream([
     new SystemMessage(systemMessage),
+    ...toLangChainHistory(history),
     new HumanMessage(msg),
   ]);
   const encoder = new TextEncoder();

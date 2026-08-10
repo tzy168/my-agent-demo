@@ -55,8 +55,11 @@ const Chat = () => {
     handleSubmit,
   } = useStreamingChat({
     apiRoute: API_ROUTES.BASE_CHAT,
-    buildBody: (text) => ({
+    buildBody: (text, priorMessages) => ({
       msg: text,
+      history: priorMessages
+        .filter((m) => m.content.trim())
+        .map(({ role, content }) => ({ role, content })),
       systemMsg: role ? ROLE_PROMPTS[role] : "",
       webSearch,
       ...chatModelPayload(),

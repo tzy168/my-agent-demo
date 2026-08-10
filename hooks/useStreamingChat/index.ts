@@ -14,12 +14,25 @@ export type StreamingChatMessage = {
   content: string;
 };
 
+/** 从本地消息列表抽出可发给服务端的 history（去掉空内容） */
+function toHistoryPayload(prior: StreamingChatMessage[]) {
+  return prior
+    .filter((m) => m.content.trim())
+    .map(({ role, content }) => ({ role, content }));
+}
+
 /** 流式对话的配置选项 */
 type UseStreamingChatOptions<TMsg extends StreamingChatMessage> = {
   /** API 路由 */
   apiRoute: string;
-  /** 拼 POST JSON body；默认 `{ msg, ...chatModelPayload() }` */
-  buildBody?: (text: string) => Record<string, unknown>;
+  /**
+   * 拼 POST JSON body；默认 `{ msg, history, ...chatModelPayload() }`
+   * priorMessages 为本轮提交前的已完成消息，不含当前输入与空 AI 气泡
+   */
+  buildBody?: (
+    text: string,
+    priorMessages: TMsg[],
+  ) => Record<string, unknown>;
   /** 拿到 Response 后、读流前调用（如解析 X-Rag-Hits） */
   onResponse?: (
     response: Response,
@@ -80,6 +93,9 @@ const useStreamingChat = <TMsg extends StreamingChatMessage = StreamingChatMessa
     const text = input.trim();
     if (!text || loading) return;
 
+    // 在 setMessages 之前取 prior，避免空 AI 气泡 / 本轮 human 进 history
+    const priorMessages = messages;
+
     const humanMsg = {
       id: `human-${Date.now()}`,
       role: "human" as const,
@@ -99,7 +115,11 @@ const useStreamingChat = <TMsg extends StreamingChatMessage = StreamingChatMessa
     abortControllerRef.current = controller;
 
     try {
-      const body = buildBody?.(text) ?? { msg: text, ...chatModelPayload() };
+      const body = buildBody?.(text, priorMessages) ?? {
+        msg: text,
+        history: toHistoryPayload(priorMessages),
+        ...chatModelPayload(),
+      };
       const response = await fetch(apiRoute, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

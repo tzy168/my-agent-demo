@@ -1,11 +1,18 @@
-import { baseChat, errorResponse, parseModelOptions } from "@/lib/server";
+import {
+  baseChat,
+  errorResponse,
+  parseChatHistory,
+  parseModelOptions,
+} from "@/lib/server";
 
 /**
  *
  * @param request 请求体
  * @body {
  *  msg: string
+ *  history?: { role: "human" | "ai"; content: string }[]
  *  systemMsg: string
+ *  webSearch?: boolean
  *  provider?: "ollama" | "deepseek"
  *  apiKey?: string
  * }
@@ -15,12 +22,14 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { msg, systemMsg, webSearch } = body;
+    const history = parseChatHistory(body.history);
     const stream = await baseChat(
       msg,
       systemMsg,
       webSearch,
       request.signal,
       parseModelOptions(body),
+      history,
     );
     return new Response(stream, {
       headers: {

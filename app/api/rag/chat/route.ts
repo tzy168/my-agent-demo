@@ -1,7 +1,12 @@
-import { errorResponse, parseModelOptions, streamRagChat } from "@/lib/server";
+import {
+  errorResponse,
+  parseChatHistory,
+  parseModelOptions,
+  streamRagChat,
+} from "@/lib/server";
 
 /**
- * POST { msg: string, provider?: string, apiKey?: string }
+ * POST { msg: string, history?: ChatHistoryItem[], provider?: string, apiKey?: string }
  * 成功：纯文本流；响应头 X-Rag-Hits 为检索结果 JSON（含相似度）
  */
 export async function POST(request: Request) {
@@ -12,10 +17,12 @@ export async function POST(request: Request) {
       return errorResponse("msg 不能为空", -1, 400);
     }
 
+    const history = parseChatHistory(body.history);
     const { stream, hits } = await streamRagChat(
       msg.trim(),
       request.signal,
       parseModelOptions(body),
+      history,
     );
 
     return new Response(stream, {

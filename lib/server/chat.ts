@@ -8,7 +8,9 @@ import {
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import type { StructuredToolInterface } from "@langchain/core/tools";
+import type { ChatHistoryItem } from "@/types/chat";
 import { createChatModel, type ChatModelOptions } from "./model";
+import { toLangChainHistory } from "./messages";
 import { getNowTimeTool, webSearchTool } from "./tools";
 
 /** 当前 baseChat 绑定的工具；标成公共基类型，避免异构 schema 的 invoke 签名联合 */
@@ -51,11 +53,14 @@ export const baseChat = async (
   webSearch: boolean,
   signal?: AbortSignal,
   modelOptions?: ChatModelOptions,
+  history: ChatHistoryItem[] = [],
 ) => {
   const tools = webSearch ? baseChatTools : baseChatTools.filter((t) => t.name !== "web_search");
   const model = createChatModel(modelOptions).bindTools(tools);
+  // System + 多轮历史 + 本轮用户消息；tool 闭环消息只存在于当次请求
   const messages: BaseMessage[] = [
     new SystemMessage(systemMsg),
+    ...toLangChainHistory(history),
     new HumanMessage(msg),
   ];
   const encoder = new TextEncoder();

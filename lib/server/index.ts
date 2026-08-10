@@ -5,6 +5,7 @@ export {
   parseModelOptions,
   type ChatModelOptions,
 } from "./model";
+export { parseChatHistory, toLangChainHistory } from "./messages";
 export {
   ingestText,
   searchRag,
